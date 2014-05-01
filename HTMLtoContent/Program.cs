@@ -4,22 +4,22 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
+using HtmlAgilityPack;
 
 namespace HTMLtoContent
 {
     class Program
     {
         static private List<string> list = new List<string>();
-        static string res = "";
         static void Main(string[] args)
         {
             string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
             //string[] files = Directory.GetFiles(@".\Myfiles", "*.*",
             //    SearchOption.AllDirectories);
 
+            int k = 0;
             foreach (string file in files)
             {
-                res = "";
                 DirectoryInfo di = new DirectoryInfo(file);
                 StreamReader sr = new StreamReader(file);
 
@@ -28,63 +28,58 @@ namespace HTMLtoContent
                 sr.Close();
 
                 HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+                HtmlNode.ElementsFlags.Remove("form");
                 doc.LoadHtml(html);
-
-                if (doc.DocumentNode.SelectSingleNode("//body") == null)
-                {
-                    doc.LoadHtml("<all>" + html + "</all>");
-                    ExtractText(doc.DocumentNode.SelectSingleNode("//all"));
-                }
+                
+                string strResult = "";
+                if (doc.DocumentNode.SelectSingleNode("//body") != null)
+                    strResult = ExtractText(doc.DocumentNode.SelectSingleNode("//body"));
                 else
-                    ExtractText(doc.DocumentNode.SelectSingleNode("//body"));
-                
+                {
+                    //doc.LoadHtml("<all>" + html + "</all>");
+                    //strResult = ExtractText(doc.DocumentNode.SelectSingleNode("//all"));
 
-                
+                    strResult = "";
+                }
 
-                PreprocessingAndWrite(@".\Converted\" + di.Name + ".txt");
-
-                //StreamWriter sw = new StreamWriter("out.txt");
-                //sw.WriteLine(res);
-                ////foreach (string s in list)
-                //    //sw.WriteLine(s);
-                //sw.Close();
-
+                PreprocessingAndWrite(@".\Converted\" + di.Name + ".txt", strResult);
 
                 //暫時先處理一個html就好
-                break; 
+                k++;
+                //if(k == 2)
+                    //break; 
             }
 
             Console.WriteLine("Finish!");
             Console.ReadKey();
 
         }
-        static private void ExtractText(HtmlAgilityPack.HtmlNode node)
+        static private string ExtractText(HtmlAgilityPack.HtmlNode node)
         {
-            if (!node.Name.Equals("script") && !node.Name.Equals("noscript") && !node.Name.Equals("style"))
+            if (!node.Name.Equals("script") && !node.Name.Equals("noscript") && !node.Name.Equals("style") && !node.Name.Equals("#comment"))
             {
-                HtmlAgilityPack.HtmlNodeCollection dnc = node.ChildNodes;
-                foreach (HtmlAgilityPack.HtmlNode n in dnc)
-                {
-                    ExtractText(n);
-                }
-
-
                 if (node.ChildNodes.Count == 0)
                 {
-
-                    res += WebUtility.HtmlDecode(node.InnerText);
-                    
+                    return WebUtility.HtmlDecode(node.InnerText);
+                }
+                else
+                {
+                    string result = "";
+                    HtmlAgilityPack.HtmlNodeCollection dnc = node.ChildNodes;
+                    foreach (HtmlAgilityPack.HtmlNode n in dnc)
+                    {
+                        result += ExtractText(n);
+                    }
+                    return result;
                 }
             }
-
-
-            
+            return String.Empty;
         }
-        static private void PreprocessingAndWrite(string outputFileName)
+        static private void PreprocessingAndWrite(string outputFileName, string str)
         {
             StreamWriter sw = new StreamWriter(outputFileName);
 
-            string[] lines = res.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = str.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string line in lines)
             {
