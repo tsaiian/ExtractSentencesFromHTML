@@ -5,10 +5,10 @@ using System.Text;
 
 namespace HTMLtoContent
 {
-    class OpenNLP
+    class NLP
     {
         private opennlp.tools.sentdetect.SentenceDetectorME sentenceDetector;
-        public OpenNLP()
+        public NLP()
         {
             //loading sentence detector model
             java.io.FileInputStream modelInpStream = new java.io.FileInputStream("model\\en-sent.bin");
@@ -19,6 +19,11 @@ namespace HTMLtoContent
         {
             return sentenceDetector.sentDetect(str);
         }
+        public string stemming(string str)
+        {
+            return Stemmer.go(str);
+        }
+
 
     }
 }

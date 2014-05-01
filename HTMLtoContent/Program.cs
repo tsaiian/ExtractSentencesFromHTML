@@ -11,7 +11,7 @@ namespace HTMLtoContent
     class Program
     {
         static private List<string> list = new List<string>();
-        static private OpenNLP openNLP = new OpenNLP();
+        static private NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
             string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
@@ -78,13 +78,15 @@ namespace HTMLtoContent
             string[] lines = str.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
-                string[] sentences = openNLP.sentDetect(line);
+                string[] sentences = NLPmethods.sentDetect(line);
                 foreach (string s in sentences)
                 {
                     string afterTrim = s.Trim(new char[] { '\t', ' ' });
                     if (afterTrim.Length != 0)
                         sw.WriteLine(afterTrim);
                 }
+
+
                 
             }
             sw.Close();
