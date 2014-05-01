@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTMLtoContent", "HTMLtoContent\HTMLtoContent.csproj", "{4A28DB6D-01AB-4F6E-A550-81881A4BDA7E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A28DB6D-01AB-4F6E-A550-81881A4BDA7E}.Debug|x86.ActiveCfg = Debug|x86
+		{4A28DB6D-01AB-4F6E-A550-81881A4BDA7E}.Debug|x86.Build.0 = Debug|x86
+		{4A28DB6D-01AB-4F6E-A550-81881A4BDA7E}.Release|x86.ActiveCfg = Release|x86
+		{4A28DB6D-01AB-4F6E-A550-81881A4BDA7E}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
