@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Net;
 
 namespace HTMLtoContent
 {
@@ -27,18 +28,16 @@ namespace HTMLtoContent
                 sr.Close();
 
                 HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-
                 doc.LoadHtml(html);
 
                 if (doc.DocumentNode.SelectSingleNode("//body") == null)
                 {
-                    doc.LoadHtml("<aaaa>" + html + "</aaaa>");
-                    ExtractText(doc.DocumentNode.SelectSingleNode("//aaaa"));
+                    doc.LoadHtml("<all>" + html + "</all>");
+                    ExtractText(doc.DocumentNode.SelectSingleNode("//all"));
                 }
                 else
-                {
                     ExtractText(doc.DocumentNode.SelectSingleNode("//body"));
-                }
+                
 
                 
 
@@ -50,8 +49,12 @@ namespace HTMLtoContent
                 //    //sw.WriteLine(s);
                 //sw.Close();
 
+
+                //暫時先處理一個html就好
+                break; 
             }
 
+            Console.WriteLine("Finish!");
             Console.ReadKey();
 
         }
@@ -68,7 +71,9 @@ namespace HTMLtoContent
 
                 if (node.ChildNodes.Count == 0)
                 {
-                    res += node.InnerText;
+
+                    res += WebUtility.HtmlDecode(node.InnerText);
+                    
                 }
             }
 
@@ -87,8 +92,11 @@ namespace HTMLtoContent
 
                 if (fixedString.Length != 0)
                     sw.WriteLine(fixedString);
+                
             }
             sw.Close();
         }
+
+
     }
 }
