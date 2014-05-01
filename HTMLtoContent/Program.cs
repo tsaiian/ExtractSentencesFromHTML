@@ -12,7 +12,7 @@ namespace HTMLtoContent
     {
         private const double thresholdT = 0.8;
         static private List<string> list = new List<string>();
-        static private NLP NLPmethods = new NLP();
+        static public NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
             List<string> query = new List<string>(NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization("java vs python text processing"))));

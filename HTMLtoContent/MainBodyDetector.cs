@@ -29,7 +29,7 @@ namespace HTMLtoContent
                 if (node.ChildNodes.Count == 0)
                 {
                     eachNodeIsMainBody.Add(node, true);
-                    int count = node.InnerText.Split(new char[] { ' ' }).Length;
+                    int count = Program.NLPmethods.Tokenization(node.InnerText).Length;
                     if (isUnderLink)
                         return new Pair<int, int>(count, count);
                     else
