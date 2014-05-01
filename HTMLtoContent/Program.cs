@@ -11,11 +11,10 @@ namespace HTMLtoContent
     class Program
     {
         static private List<string> list = new List<string>();
+        static private OpenNLP openNLP = new OpenNLP();
         static void Main(string[] args)
         {
             string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
-            //string[] files = Directory.GetFiles(@".\Myfiles", "*.*",
-            //    SearchOption.AllDirectories);
 
             int k = 0;
             foreach (string file in files)
@@ -35,23 +34,20 @@ namespace HTMLtoContent
                 if (doc.DocumentNode.SelectSingleNode("//body") != null)
                     strResult = ExtractText(doc.DocumentNode.SelectSingleNode("//body"));
                 else
-                {
-                    //doc.LoadHtml("<all>" + html + "</all>");
-                    //strResult = ExtractText(doc.DocumentNode.SelectSingleNode("//all"));
-
                     strResult = "";
-                }
+                
 
                 PreprocessingAndWrite(@".\Converted\" + di.Name + ".txt", strResult);
 
                 //暫時先處理一個html就好
-                k++;
+                //k++;
                 //if(k == 2)
                     //break; 
             }
 
             Console.WriteLine("Finish!");
             Console.ReadKey();
+
 
         }
         static private string ExtractText(HtmlAgilityPack.HtmlNode node)
@@ -80,13 +76,15 @@ namespace HTMLtoContent
             StreamWriter sw = new StreamWriter(outputFileName);
 
             string[] lines = str.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
             foreach (string line in lines)
             {
-                string fixedString = line.Trim(new char[] { '\t', ' ' });
-
-                if (fixedString.Length != 0)
-                    sw.WriteLine(fixedString);
+                string[] sentences = openNLP.sentDetect(line);
+                foreach (string s in sentences)
+                {
+                    string afterTrim = s.Trim(new char[] { '\t', ' ' });
+                    if (afterTrim.Length != 0)
+                        sw.WriteLine(afterTrim);
+                }
                 
             }
             sw.Close();
