@@ -19,7 +19,9 @@ namespace HTMLtoContent
         }
         public bool isMainBody(HtmlNode node)
         {
-            return eachNodeIsMainBody[node];
+            if (eachNodeIsMainBody.ContainsKey(node))
+                return eachNodeIsMainBody[node];
+            else return true;
         }
         private Pair<int, int> DetectEachNodeIsMainBody(HtmlNode node)
         {//Pair<int, int> : <numOfAllTokens, numOfLinkedTokens>
