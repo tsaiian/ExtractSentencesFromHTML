@@ -5,6 +5,7 @@ using System.Text;
 using opennlp.tools.tokenize;
 using opennlp.tools.sentdetect;
 using opennlp.tools.util;
+using System.IO;
 
 namespace HTMLtoContent
 {
@@ -12,6 +13,7 @@ namespace HTMLtoContent
     {
         private SentenceDetectorME sentenceDetector;
         private TokenizerME tokenizer;
+        private HashSet<string> stopwords = new HashSet<string>();
 
         public NLP()
         {
@@ -24,14 +26,23 @@ namespace HTMLtoContent
             modelInpStream = new java.io.FileInputStream("model\\en-token.bin");
             TokenizerModel tokenizerModel = new TokenizerModel(modelInpStream);
             tokenizer = new TokenizerME(tokenizerModel);
+
+            //loading stop words list
+            StreamReader sr = new StreamReader("english.stop.txt");
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                stopwords.Add(Stemming(line));
+                stopwords.Add(line);
+            }
         }
 
-        public string[] sentDetect(string str)
+        public string[] SentDetect(string str)
         {
             return sentenceDetector.sentDetect(str);
         }
 
-        public string[] tokenization(string str)
+        public string[] Tokenization(string str)
         {
             Span[] tokenSpans = tokenizer.tokenizePos(str);	
 			List<String> list = new List<String>();
@@ -42,10 +53,35 @@ namespace HTMLtoContent
             return list.ToArray();
         }
 
-        public string stemming(string str)
+        public string Stemming(string str)
         {
             return Stemmer.go(str);
         }
 
+        public string[] Stemming(string[] words)
+        {
+            for (int i = 0; i < words.Length; i++)
+            {
+                words[i] = Stemming(words[i]);
+
+            }
+            return words;
+        }
+
+        public bool IsStopWord(string word)
+        {
+            return stopwords.Contains(word);
+        }
+
+        public string[] FilterOutStopWords(string[] words)
+        {
+            List<string> result = new List<string>();
+
+            foreach (string word in words)
+                if (!IsStopWord(word))
+                    result.Add(word);
+
+            return result.ToArray();
+        }
     }
 }

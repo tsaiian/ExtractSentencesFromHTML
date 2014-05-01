@@ -15,7 +15,7 @@ namespace HTMLtoContent
         static private NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
-            List<string> query = new List<string>(NLPmethods.tokenization(NLPmethods.stemming("java vs python text processing")));
+            List<string> query = new List<string>(NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization("java vs python text processing"))));
 
             string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
 
@@ -87,11 +87,11 @@ namespace HTMLtoContent
             string[] lines = str.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
-                string[] sentences = NLPmethods.sentDetect(line);
+                string[] sentences = NLPmethods.SentDetect(line);
                 foreach (string s in sentences)
                 {
                     string afterTrim = s.Trim(new char[] { '\t', ' ' });
-                    string[] tokens = NLPmethods.tokenization(afterTrim);
+                    string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterTrim)));
 
                     int tf = 0;
                     foreach (string token in tokens)
