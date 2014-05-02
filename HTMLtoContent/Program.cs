@@ -34,8 +34,13 @@ namespace HTMLtoContent
                 HtmlNode.ElementsFlags.Remove("form");
                 doc.LoadHtml(html);
                 HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+                //NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(titleNode.InnerText)))
+                HtmlNode titlNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
+                string[] titleTokens = null;
+                if (titlNode != null)
+                    titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titlNode.InnerText))));
 
-                TopicBlocks tbs = new TopicBlocks(doc.DocumentNode.SelectSingleNode("//html//head//title"));
+                TopicBlocks tbs = new TopicBlocks(titleTokens);
                 if (bodyNode != null)
                 {
                     MainBodyDetector mbd = new MainBodyDetector(bodyNode, thresholdT);
@@ -69,8 +74,9 @@ namespace HTMLtoContent
 
                     //change header
                     int hx = Convert.ToInt16(node.Name.Substring(1));
-                    string subtopic = WebUtility.HtmlDecode(node.InnerText).Replace("\n", "").Replace("\t", "").Replace("\r", "");
-                    tbs.addNewHeader(hx, subtopic);
+                    string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(node.InnerText))));
+                        //Replace("\n", "").Replace("\t", "").Replace("\r", "");
+                    tbs.addNewHeader(hx, subtopicTokens);
                 }
 
                 if (node.ChildNodes.Count == 0)
@@ -90,7 +96,7 @@ namespace HTMLtoContent
         {
             StreamWriter sw = new StreamWriter(outputFileName);
 
-            foreach (Pair<string, string[]> block in tbs.getBlocks())
+            foreach (Pair<string, string[][]> block in tbs.getBlocks())
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string line in lines)
@@ -112,7 +118,11 @@ namespace HTMLtoContent
                         {
                             sw.Write("Subtopic:\t");
                             for (int i = 0; i < block.second.Length; i++)
-                                sw.Write(block.second[i] + "\t");
+                            {
+                                for (int j = 0; j < block.second[i].Length; j++)
+                                    sw.Write(block.second[i][j] + " ");
+                                sw.Write("|");
+                            }
 
                             sw.WriteLine();
                             sw.WriteLine(tf + "\t" + afterTrim);

@@ -10,24 +10,26 @@ namespace HTMLtoContent
     {
         private List<int> beginIndex = null;
         private List<int> endIndex = null;
-        private List<List<string>> subtopicList = null;
+        private List<List<string[]>> subtopicList = null;
 
-        private List<string> subtopicNow = null;
+        private List<string[]> subtopicNow = null;
         private int start = 0, now = 0;
         private string fullText = String.Empty;
 
-        public TopicBlocks(HtmlNode titleNode)
+        public TopicBlocks(string[] titleTokens)
         {
             beginIndex = new List<int>();
             endIndex = new List<int>();
-            subtopicList = new List<List<string>>();
-            subtopicNow = new List<string>();
+            subtopicList = new List<List<string[]>>();
+            subtopicNow = new List<string[]>();
             start = now = 0;
 
-            if (titleNode == null)
-                subtopicNow.Add(String.Empty);
+            if (titleTokens == null)
+                subtopicNow.Add(null);
             else
-                subtopicNow.Add(titleNode.InnerText);
+                subtopicNow.Add(titleTokens);
+
+            
         }
 
         public void SaveBlock()
@@ -37,10 +39,10 @@ namespace HTMLtoContent
             subtopicList.Add(subtopicNow);
             start = now;
 
-            subtopicNow = new List<string>(subtopicNow);
+            subtopicNow = new List<string[]>(subtopicNow);
         }
 
-        public void addNewHeader(int headerLevel, string subtopic)
+        public void addNewHeader(int headerLevel, string[] subtopicTokens)
         {
             if (subtopicNow.Count - 1 > headerLevel)
             {
@@ -50,12 +52,12 @@ namespace HTMLtoContent
             else if (subtopicNow.Count - 1 < headerLevel)
             {
                 for (int i = subtopicNow.Count - 1; i < headerLevel - 1; i++)
-                    subtopicNow.Add(String.Empty);
+                    subtopicNow.Add(null);
             }
             else
                 subtopicNow.RemoveAt(headerLevel);
 
-            subtopicNow.Add(subtopic);
+            subtopicNow.Add(subtopicTokens);
         }
 
         public void addExtractedText(string s)
@@ -64,9 +66,9 @@ namespace HTMLtoContent
             fullText += s;
         }
 
-        public Pair<string, string[]>[] getBlocks()
+        public Pair<string, string[][]>[] getBlocks()
         {
-            List<Pair<string, string[]>> blocksWithSubtopic = new List<Pair<string,string[]>>();
+            List<Pair<string, string[][]>> blocksWithSubtopic = new List<Pair<string,string[][]>>();
 
             if (fullText.Equals(String.Empty))
                 return blocksWithSubtopic.ToArray();
@@ -77,12 +79,12 @@ namespace HTMLtoContent
                 {
                     string block = fullText.Substring(beginIndex[i], endIndex[i] - beginIndex[i] - 1);
 
-                    List<string> simplifySubtopicList = new List<string>();
-                    foreach (string title in subtopicList[i])
-                        if (!title.Equals(String.Empty))
-                            simplifySubtopicList.Add(title);
+                    List<string[]> simplifySubtopicList = new List<string[]>();
+                    foreach (string[] titleTokens in subtopicList[i])
+                        if (!titleTokens.Equals(null))
+                            simplifySubtopicList.Add(titleTokens);
 
-                    Pair<string, string[]> pair = new Pair<string, string[]>(block, simplifySubtopicList.ToArray());
+                    Pair<string, string[][]> pair = new Pair<string, string[][]>(block, simplifySubtopicList.ToArray());
                     blocksWithSubtopic.Add(pair);
                 }
             }
