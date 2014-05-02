@@ -33,12 +33,13 @@ namespace HTMLtoContent
                 HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
                 HtmlNode.ElementsFlags.Remove("form");
                 doc.LoadHtml(html);
+
                 HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
-                //NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(titleNode.InnerText)))
-                HtmlNode titlNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
+                HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
+
                 string[] titleTokens = null;
-                if (titlNode != null)
-                    titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titlNode.InnerText))));
+                if (titleNode != null)
+                    titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
 
                 TopicBlocks tbs = new TopicBlocks(titleTokens);
                 if (bodyNode != null)
@@ -75,7 +76,6 @@ namespace HTMLtoContent
                     //change header
                     int hx = Convert.ToInt16(node.Name.Substring(1));
                     string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(node.InnerText))));
-                        //Replace("\n", "").Replace("\t", "").Replace("\r", "");
                     tbs.addNewHeader(hx, subtopicTokens);
                 }
 
@@ -119,16 +119,28 @@ namespace HTMLtoContent
 
                         if (tokens.Length >= 3 && tf >= 1)
                         {
-                            sw.Write("Subtopic:\t");
+                            double subtopicWeight = 1.0;
+
+                            int preCount = 0;
                             for (int i = 0; i < block.second.Length; i++)
                             {
+                                int matchCount = 0;
                                 for (int j = 0; j < block.second[i].Length; j++)
-                                    sw.Write(block.second[i][j] + " ");
-                                sw.Write("|");
+                                {
+                                    if (query.Contains(block.second[i][j]))
+                                        matchCount++;
+                                    
+                                }
+                                if (i != 0)
+                                {
+                                    if (preCount > matchCount)
+                                        subtopicWeight *= Math.Pow(0.9, preCount - matchCount);
+                                    else if(preCount < matchCount)
+                                        subtopicWeight *= Math.Pow(1.1, matchCount - preCount);
+                                }
+                                preCount = matchCount;
                             }
-
-                            sw.WriteLine();
-                            sw.WriteLine(tf + "\t" + afterTrim);
+                            sw.WriteLine(tf + "\t" + subtopicWeight + "\t" + afterTrim);
                         }
                     }
                 }
