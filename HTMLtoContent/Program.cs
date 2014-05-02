@@ -60,7 +60,7 @@ namespace HTMLtoContent
             Console.ReadKey();
 
         }
-        static private void Traversal(HtmlAgilityPack.HtmlNode node, MainBodyDetector mbd, TopicBlocks tbs)
+        static private void Traversal(HtmlAgilityPack.HtmlNode node, MainBodyDetector mbd, TopicBlocks tbs, bool isRoot = true)
         {
             if (node.Name.Equals("script") || node.Name.Equals("noscript") || node.Name.Equals("style") || node.Name.Equals("#comment") || !mbd.isMainBody(node))
                 tbs.addExtractedText("\n");
@@ -88,9 +88,12 @@ namespace HTMLtoContent
                 {
                     HtmlNodeCollection hnc = node.ChildNodes;
                     foreach (HtmlNode n in hnc)
-                        Traversal(n, mbd, tbs);
+                        Traversal(n, mbd, tbs, false);
                 }
             }
+            if(isRoot)
+                tbs.SaveBlock();
+            
         }
         static private void PreprocessingAndWrite(string outputFileName, TopicBlocks tbs, List<string> query)
         {

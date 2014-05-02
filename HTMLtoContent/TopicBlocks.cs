@@ -81,16 +81,16 @@ namespace HTMLtoContent
 
                     List<string[]> simplifySubtopicList = new List<string[]>();
                     foreach (string[] titleTokens in subtopicList[i])
-                        if (!titleTokens.Equals(null))
+                        if (titleTokens != null)
                             simplifySubtopicList.Add(titleTokens);
 
                     Pair<string, string[][]> pair = new Pair<string, string[][]>(block, simplifySubtopicList.ToArray());
                     blocksWithSubtopic.Add(pair);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //do nothing
+                Console.WriteLine(e.Message);
             }
             return blocksWithSubtopic.ToArray();
         }
