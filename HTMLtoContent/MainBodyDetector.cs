@@ -12,10 +12,13 @@ namespace HTMLtoContent
         private double threshold;
         public MainBodyDetector(HtmlNode node, double thresholdT)
         {
-            threshold = thresholdT;
+            if (node != null)
+            {
+                threshold = thresholdT;
 
-            //build dictionary
-            DetectEachNodeIsMainBody(node);
+                //build dictionary
+                DetectEachNodeIsMainBody(node);
+            }
         }
         public bool isMainBody(HtmlNode node)
         {
