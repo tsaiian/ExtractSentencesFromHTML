@@ -77,6 +77,8 @@ namespace HTMLtoContent
                     int hx = Convert.ToInt16(node.Name.Substring(1));
                     string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(node.InnerText))));
                     tbs.addNewHeader(hx, subtopicTokens);
+
+                    return;
                 }
 
                 if (node.ChildNodes.Count == 0)
@@ -121,25 +123,46 @@ namespace HTMLtoContent
                         {
                             double subtopicWeight = 1.0;
 
-                            int preCount = 0;
+                            List<bool> preMatchList = new List<bool>();
                             for (int i = 0; i < block.second.Length; i++)
                             {
-                                int matchCount = 0;
+                                //print subtopic
                                 for (int j = 0; j < block.second[i].Length; j++)
+                                    sw.Write(block.second[i][j] + " ");
+
+                                //calc weight
+                                List<bool> matchList = new List<bool>();
+                                foreach (string q in query)
                                 {
-                                    if (query.Contains(block.second[i][j]))
-                                        matchCount++;
-                                    
+                                    if (block.second[i].Contains(q))
+                                        matchList.Add(true);
+                                    else
+                                        matchList.Add(false);
                                 }
+
                                 if (i != 0)
                                 {
-                                    if (preCount > matchCount)
-                                        subtopicWeight *= Math.Pow(0.9, preCount - matchCount);
-                                    else if(preCount < matchCount)
-                                        subtopicWeight *= Math.Pow(1.1, matchCount - preCount);
+                                    int appear = 0, disappear = 0;
+                                    for (int k = 0; k < query.Count; k++)
+                                    {
+                                        if (matchList[k] && !preMatchList[k])
+                                            appear++;
+                                        else if (!matchList[k] && preMatchList[k])
+                                            disappear++;
+                                    }
+
+                                    if (block.second[i].Contains("answer"))
+                                        appear = disappear = 0;
+                                    
+
+                                    subtopicWeight *= Math.Pow(1.1, appear);
+                                    subtopicWeight *= Math.Pow(0.9, disappear);
                                 }
-                                preCount = matchCount;
+                                preMatchList = new List<bool>(matchList);
+
+                                sw.Write("|");
                             }
+                            sw.WriteLine();
                             sw.WriteLine(tf + "\t" + subtopicWeight + "\t" + afterTrim);
                         }
                     }

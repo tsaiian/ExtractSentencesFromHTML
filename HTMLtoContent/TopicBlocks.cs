@@ -34,12 +34,15 @@ namespace HTMLtoContent
 
         public void SaveBlock()
         {
-            beginIndex.Add(start);
-            endIndex.Add(now);
-            subtopicList.Add(subtopicNow);
-            start = now;
+            if (start != now)
+            {
+                beginIndex.Add(start);
+                endIndex.Add(now);
+                subtopicList.Add(subtopicNow);
 
-            subtopicNow = new List<string[]>(subtopicNow);
+                start = now;
+                subtopicNow = new List<string[]>(subtopicNow);
+            }
         }
 
         public void addNewHeader(int headerLevel, string[] subtopicTokens)
