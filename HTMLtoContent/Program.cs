@@ -16,7 +16,7 @@ namespace HTMLtoContent
         static public NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
-            List<string> query = new List<string>(NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization("java vs python text processing"))));
+           string[] query = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization("java vs python text processing")));
 
             string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
 
@@ -41,14 +41,10 @@ namespace HTMLtoContent
                 if (titleNode != null)
                     titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
 
-                TopicBlocks tbs = new TopicBlocks(titleTokens);
-                if (bodyNode != null)
-                {
-                    MainBodyDetector mbd = new MainBodyDetector(bodyNode, thresholdT);
-                    Traversal(bodyNode, mbd, tbs);
-                }
+                MainBodyDetector mbd = new MainBodyDetector(bodyNode, thresholdT);
+                TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
 
-                PreprocessingAndWrite(@".\Converted\" + di.Name + ".txt", tbs, query);
+                SplitSentencesAndWriteFile(@".\Converted\" + di.Name + ".txt", tbs, query.ToArray());
 
                 //暫時先處理一個html就好
                 //k++;
@@ -61,8 +57,14 @@ namespace HTMLtoContent
             Console.ReadKey();
 
         }
-        static private void Traversal(HtmlAgilityPack.HtmlNode node, MainBodyDetector mbd, TopicBlocks tbs, bool isRoot = true)
+        static private TopicBlocks ExtractBlocks(HtmlNode node, MainBodyDetector mbd, string[] titleTokens, TopicBlocks tbs = null, bool isRoot = true)
         {
+            if (node == null)
+                return null;
+
+            if(tbs == null)
+                tbs = new TopicBlocks(titleTokens);
+
             if (node.Name.Equals("script") || node.Name.Equals("noscript") || node.Name.Equals("style") || node.Name.Equals("#comment") || !mbd.isMainBody(node))
                 tbs.addExtractedText("\n");
             else
@@ -78,7 +80,7 @@ namespace HTMLtoContent
                     string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(node.InnerText))));
                     tbs.addNewHeader(hx, subtopicTokens);
 
-                    return;
+                    return tbs;
                 }
 
                 if (node.ChildNodes.Count == 0)
@@ -90,18 +92,25 @@ namespace HTMLtoContent
                 {
                     HtmlNodeCollection hnc = node.ChildNodes;
                     foreach (HtmlNode n in hnc)
-                        Traversal(n, mbd, tbs, false);
+                        ExtractBlocks(n, mbd, null, tbs, false);
                 }
             }
             if(isRoot)
                 tbs.SaveBlock();
-            
+
+            return tbs;
         }
-        static private void PreprocessingAndWrite(string outputFileName, TopicBlocks tbs, List<string> query)
+        static private void SplitSentencesAndWriteFile(string outputFileName, TopicBlocks tbs, string[] query)
         {
             StreamWriter sw = new StreamWriter(outputFileName);
 
-            foreach (Pair<string, double> block in tbs.getBlocksWithWeight(query.ToArray()))
+            if (tbs == null)
+            {
+                sw.Close();
+                return;
+            }
+
+            foreach (Pair<string, double> block in tbs.getBlocksWithWeight(query))
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string line in lines)
