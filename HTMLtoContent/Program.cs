@@ -4,21 +4,20 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
-using HtmlAgilityPack;
 using System.Text.RegularExpressions;
+using HtmlAgilityPack;
+
 
 namespace HTMLtoContent
 {
     class Program
     {
-        private const double thresholdT = 0.8;
-        static private List<string> list = new List<string>();
         static public NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
-           string[] query = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization("java vs python text processing")));
+            string[] query = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(Setting.query)));
 
-            string[] files = Directory.GetFiles(@".\MC1-E-BSR", "*.html");
+            string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "*.html");
 
             int k = 0;
             foreach (string file in files)
@@ -30,7 +29,7 @@ namespace HTMLtoContent
                 string html = sr.ReadToEnd();
                 sr.Close();
 
-                HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+                HtmlDocument doc = new HtmlDocument();
                 HtmlNode.ElementsFlags.Remove("form");
                 doc.LoadHtml(html);
 
@@ -41,10 +40,10 @@ namespace HTMLtoContent
                 if (titleNode != null)
                     titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
 
-                MainBodyDetector mbd = new MainBodyDetector(bodyNode, thresholdT);
+                MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
                 TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
 
-                SplitSentencesAndWriteFile(@".\Converted\" + di.Name + ".txt", tbs, query.ToArray());
+                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", tbs, query.ToArray());
 
                 //暫時先處理一個html就好
                 //k++;
@@ -85,7 +84,14 @@ namespace HTMLtoContent
 
                 if (node.ChildNodes.Count == 0)
                 {
-                    string result = WebUtility.HtmlDecode(node.InnerText);
+                    HtmlNode previousSibling = node.PreviousSibling;
+
+                    string result = "";
+                    if (previousSibling != null && Setting.changeLineTags.Contains(previousSibling.Name))
+                        result = "\n" + WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "));
+                    else
+                        result = WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "));
+
                     tbs.addExtractedText(result);
                 }
                 else
@@ -118,19 +124,22 @@ namespace HTMLtoContent
                     string[] sentences = NLPmethods.SentDetect(line);
                     foreach (string s in sentences)
                     {
-                        string afterTrim = s.Trim(new char[] { '\t', ' ' });
-                        string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterTrim)));
+                        string afterProcess = s.Trim(new char[] { '\t', ' ' , '-', '*'});
+
+                        Regex whiteRegex = new Regex("[ \t]+");
+                        afterProcess = whiteRegex.Replace(afterProcess, " ");
+
+                        string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterProcess)));
 
                         int tf = 0;
                         foreach (string token in tokens)
-                        {
                             if (query.Contains(token))
                                 tf++;
-                        }
+                        
 
                         if (tokens.Length >= 3 && tf >= 1)
                         {
-                            sw.WriteLine(tf + "\t" + block.second + "\t" + afterTrim);
+                            sw.WriteLine(tf + "\t" + block.second + "\t" + afterProcess);
                         }
                     }
                 }
