@@ -101,7 +101,7 @@ namespace HTMLtoContent
         {
             StreamWriter sw = new StreamWriter(outputFileName);
 
-            foreach (Pair<string, string[][]> block in tbs.getBlocks())
+            foreach (Pair<string, double> block in tbs.getBlocksWithWeight(query.ToArray()))
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string line in lines)
@@ -121,49 +121,7 @@ namespace HTMLtoContent
 
                         if (tokens.Length >= 3 && tf >= 1)
                         {
-                            double subtopicWeight = 1.0;
-
-                            List<bool> preMatchList = new List<bool>();
-                            for (int i = 0; i < block.second.Length; i++)
-                            {
-                                //print subtopic
-                                for (int j = 0; j < block.second[i].Length; j++)
-                                    sw.Write(block.second[i][j] + " ");
-
-                                //calc weight
-                                List<bool> matchList = new List<bool>();
-                                foreach (string q in query)
-                                {
-                                    if (block.second[i].Contains(q))
-                                        matchList.Add(true);
-                                    else
-                                        matchList.Add(false);
-                                }
-
-                                if (i != 0)
-                                {
-                                    int appear = 0, disappear = 0;
-                                    for (int k = 0; k < query.Count; k++)
-                                    {
-                                        if (matchList[k] && !preMatchList[k])
-                                            appear++;
-                                        else if (!matchList[k] && preMatchList[k])
-                                            disappear++;
-                                    }
-
-                                    if (block.second[i].Contains("answer"))
-                                        appear = disappear = 0;
-                                    
-
-                                    subtopicWeight *= Math.Pow(1.1, appear);
-                                    subtopicWeight *= Math.Pow(0.9, disappear);
-                                }
-                                preMatchList = new List<bool>(matchList);
-
-                                sw.Write("|");
-                            }
-                            sw.WriteLine();
-                            sw.WriteLine(tf + "\t" + subtopicWeight + "\t" + afterTrim);
+                            sw.WriteLine(tf + "\t" + block.second + "\t" + afterTrim);
                         }
                     }
                 }

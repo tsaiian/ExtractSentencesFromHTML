@@ -97,5 +97,54 @@ namespace HTMLtoContent
             }
             return blocksWithSubtopic.ToArray();
         }
+
+        public Pair<string, double>[] getBlocksWithWeight(string[] queryTokens)
+        {
+            List<Pair<string, double>> result = new List<Pair<string, double>>();
+            foreach (Pair<string, string[][]> block in getBlocks())
+            {
+                double subtopicWeight = 1.0;
+                List<bool> preMatchList = new List<bool>();
+                for (int i = 0; i < block.second.Length; i++)
+                {
+                    //print subtopic
+                    //for (int j = 0; j < block.second[i].Length; j++)
+                    //sw.Write(block.second[i][j] + " ");
+
+                    //calc weight
+                    List<bool> matchList = new List<bool>();
+                    foreach (string q in queryTokens)
+                    {
+                        if (block.second[i].Contains(q))
+                            matchList.Add(true);
+                        else
+                            matchList.Add(false);
+                    }
+
+                    if (i != 0)
+                    {
+                        int appear = 0, disappear = 0;
+                        for (int k = 0; k < queryTokens.Length; k++)
+                        {
+                            if (matchList[k] && !preMatchList[k])
+                                appear++;
+                            else if (!matchList[k] && preMatchList[k])
+                                disappear++;
+                        }
+
+                        if (block.second[i].Contains("answer"))
+                            appear = disappear = 0;
+
+
+                        subtopicWeight *= Math.Pow(1.1, appear);
+                        subtopicWeight *= Math.Pow(0.9, disappear);
+                    }
+                    preMatchList = new List<bool>(matchList);
+                }
+                result.Add(new Pair<string, double>(block.first, subtopicWeight));
+            }
+
+            return result.ToArray();
+        }
     }
 }
