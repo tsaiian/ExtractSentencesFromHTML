@@ -62,6 +62,23 @@ namespace HTMLtoContent
             Console.ReadKey();
 
         }
+        static private string ExtractText(HtmlNode node)
+        {
+            string result = "";
+            if (node.Name.Equals("script") || node.Name.Equals("noscript") || node.Name.Equals("style") || node.Name.Equals("#comment"))
+                return " ";
+            else if (node.ChildNodes.Count == 0)
+                return WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "))  + " ";
+            else if (node.ChildNodes.Count > 0)
+            {
+                HtmlNodeCollection hnc = node.ChildNodes;
+                foreach (HtmlNode n in hnc)
+                    result += ExtractText(n);
+            }
+
+            return result;
+        }
+
         static private TopicBlocks ExtractBlocks(HtmlNode node, MainBodyDetector mbd, string[] titleTokens, TopicBlocks tbs = null, bool isRoot = true)
         {
             if (node == null)
@@ -82,7 +99,7 @@ namespace HTMLtoContent
 
                     //change header
                     int hx = Convert.ToInt16(node.Name.Substring(1));
-                    string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(node.InnerText))));
+                    string[] subtopicTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(ExtractText(node)))));
                     tbs.addNewHeader(hx, subtopicTokens);
 
                     return tbs;
@@ -90,21 +107,22 @@ namespace HTMLtoContent
 
                 if (node.ChildNodes.Count == 0)
                 {
-                    HtmlNode previousSibling = node.PreviousSibling;
-
-                    string result = "";
-                    if (previousSibling != null && Setting.changeLineTags.Contains(previousSibling.Name))
-                        result = "\n" + WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "));
-                    else
-                        result = WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "));
-
-                    tbs.addExtractedText(result);
+                    tbs.addExtractedText(WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " ")));
                 }
                 else
                 {
                     HtmlNodeCollection hnc = node.ChildNodes;
                     foreach (HtmlNode n in hnc)
+                    {
+                        if (Setting.changeLineTags.Contains(n.Name))
+                            tbs.addExtractedText("\n");
+
                         ExtractBlocks(n, mbd, null, tbs, false);
+
+                        if (Setting.changeLineTags.Contains(n.Name))
+                            tbs.addExtractedText("\n");
+
+                    }
                 }
             }
             if(isRoot)

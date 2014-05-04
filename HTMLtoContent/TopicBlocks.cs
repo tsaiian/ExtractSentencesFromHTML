@@ -109,7 +109,9 @@ namespace HTMLtoContent
                 {
                     //print subtopic
                     //for (int j = 0; j < block.second[i].Length; j++)
-                    //sw.Write(block.second[i][j] + " ");
+                    //    Console.Write(block.second[i][j] + " ");
+                    //Console.WriteLine("|");
+                    //Console.ReadKey();
 
                     //calc weight
                     List<bool> matchList = new List<bool>();
