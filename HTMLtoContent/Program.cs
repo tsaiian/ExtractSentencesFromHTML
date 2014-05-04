@@ -40,10 +40,16 @@ namespace HTMLtoContent
                 if (titleNode != null)
                     titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
 
-                MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
-                TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
+                Pair<string, double>[] parseResult = null;
+                parseResult = QA.ExtractBlocks(doc);
+                if (parseResult == null)
+                {
+                    MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
+                    TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
+                    parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(query.ToArray()));
+                }
 
-                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", tbs, query.ToArray());
+                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, query.ToArray());
 
                 //暫時先處理一個html就好
                 //k++;
@@ -106,17 +112,17 @@ namespace HTMLtoContent
 
             return tbs;
         }
-        static private void SplitSentencesAndWriteFile(string outputFileName, TopicBlocks tbs, string[] query)
+        static private void SplitSentencesAndWriteFile(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query)
         {
             StreamWriter sw = new StreamWriter(outputFileName);
 
-            if (tbs == null)
+            if (blocksAndWeight == null)
             {
                 sw.Close();
                 return;
             }
 
-            foreach (Pair<string, double> block in tbs.getBlocksWithWeight(query))
+            foreach (Pair<string, double> block in blocksAndWeight)
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string line in lines)
