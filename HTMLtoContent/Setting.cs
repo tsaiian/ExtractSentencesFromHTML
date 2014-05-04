@@ -18,6 +18,7 @@ namespace HTMLtoContent
         static public readonly string[] ignoreTags = { "script", "noscript", "style", "#comment" };
 
         //path related
+        public const string queryListFile = "MC1-E-Queries.tsv";
         public const string HTML_DirectoryPath = @".\MC1-E-BSR";
         public const string outputDirectoryPath = @".\Converted";
     }

@@ -15,17 +15,28 @@ namespace HTMLtoContent
         static public NLP NLPmethods = new NLP();
         static void Main(string[] args)
         {
-            string[] query = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(Setting.query)));
+            //read query list file
+            List<string[]> queryList = new List<string[]>();
+            StreamReader sr = new StreamReader(Setting.queryListFile);
+            while (!sr.EndOfStream)
+            {
+                string query = sr.ReadLine().Substring(10);
+                string[] queryTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(query)));
 
+                queryList.Add(queryTokens);
+            }
+            sr.Close();
+
+            //foreach html
             string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "*.html");
-
-            int k = 0;
             foreach (string file in files)
             {
                 DirectoryInfo di = new DirectoryInfo(file);
-                StreamReader sr = new StreamReader(file);
-
                 Console.WriteLine(di.Name);
+
+                int questionId = Convert.ToInt16(di.Name.Substring(5, 4));
+
+                sr = new StreamReader(file);
                 string html = sr.ReadToEnd();
                 sr.Close();
 
@@ -46,16 +57,10 @@ namespace HTMLtoContent
                 {
                     MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
                     TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
-                    parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(query.ToArray()));
+                    parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[questionId - 1].ToArray()));
                 }
 
-                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, query.ToArray());
-
-                //暫時先處理一個html就好
-                //k++;
-                //if(k == 2)
-                    //break; 
-                //Console.ReadKey();
+                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[questionId - 1].ToArray());
             }
 
             Console.WriteLine("Finish!");
@@ -132,6 +137,9 @@ namespace HTMLtoContent
         }
         static private void SplitSentencesAndWriteFile(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query)
         {
+            if (!Directory.Exists(Setting.outputDirectoryPath))
+                Directory.CreateDirectory(Setting.outputDirectoryPath);
+            
             StreamWriter sw = new StreamWriter(outputFileName);
 
             if (blocksAndWeight == null)
