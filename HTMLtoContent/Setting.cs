@@ -7,8 +7,6 @@ namespace HTMLtoContent
 {
     class Setting
     {
-        public const string query = "java vs python text processing";
-
         //algorithm related
         public const double thresholdT = 0.8;
 

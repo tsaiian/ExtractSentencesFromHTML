@@ -17,14 +17,13 @@ namespace HTMLtoContent
                 Console.WriteLine("[Info] Stack Overflow page");
                 result = parseStackOverflow(doc);
             }
-            if (isYahooAnswers(doc))
+            else if (isYahooAnswers(doc))
             {
                 Console.WriteLine("[Info] Yahoo Answers page");
                 result = parseYahooAnswers(doc);
             }
 
             return result;
-
         }
 
         #region Stack Overflow related function

@@ -28,39 +28,42 @@ namespace HTMLtoContent
             sr.Close();
 
             //foreach html
-            string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "*.html");
-            foreach (string file in files)
+            if (Directory.Exists(Setting.HTML_DirectoryPath))
             {
-                DirectoryInfo di = new DirectoryInfo(file);
-                Console.WriteLine(di.Name);
-
-                int questionId = Convert.ToInt16(di.Name.Substring(5, 4));
-
-                sr = new StreamReader(file);
-                string html = sr.ReadToEnd();
-                sr.Close();
-
-                HtmlDocument doc = new HtmlDocument();
-                HtmlNode.ElementsFlags.Remove("form");
-                doc.LoadHtml(html);
-
-                HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
-                HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
-
-                string[] titleTokens = null;
-                if (titleNode != null)
-                    titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
-
-                Pair<string, double>[] parseResult = null;
-                parseResult = QA.ExtractBlocks(doc);
-                if (parseResult == null)
+                string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "*.html");
+                foreach (string file in files)
                 {
-                    MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
-                    TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
-                    parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[questionId - 1].ToArray()));
-                }
+                    DirectoryInfo di = new DirectoryInfo(file);
+                    Console.WriteLine(di.Name);
 
-                SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[questionId - 1].ToArray());
+                    int questionId = Convert.ToInt16(di.Name.Substring(5, 4));
+
+                    sr = new StreamReader(file);
+                    string html = sr.ReadToEnd();
+                    sr.Close();
+
+                    HtmlDocument doc = new HtmlDocument();
+                    HtmlNode.ElementsFlags.Remove("form");
+                    doc.LoadHtml(html);
+
+                    HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+                    HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
+
+                    string[] titleTokens = null;
+                    if (titleNode != null)
+                        titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
+
+                    Pair<string, double>[] parseResult = null;
+                    parseResult = QA.ExtractBlocks(doc);
+                    if (parseResult == null)
+                    {
+                        MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
+                        TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
+                        parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[questionId - 1].ToArray()));
+                    }
+
+                    SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[questionId - 1].ToArray());
+                }
             }
 
             Console.WriteLine("Finish!");
