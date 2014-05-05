@@ -6,6 +6,7 @@ using opennlp.tools.tokenize;
 using opennlp.tools.sentdetect;
 using opennlp.tools.util;
 using System.IO;
+using System.Globalization;
 
 namespace HTMLtoContent
 {
@@ -82,6 +83,32 @@ namespace HTMLtoContent
                     result.Add(word);
 
             return result.ToArray();
+        }
+
+        public bool isQuestion(string line)
+        {
+            //判斷句子是否為問句, by 5W1H + "?" , case sensitive
+            string[] star = { "What", "Who", "Which", "When", "Where", "Why", "How" };
+            string[] verb = { "is ", "was ", "were ", "are ", "do ", "does ", "did ", "can ", "could ", "will ", "would ", "should" };
+            string[] token = { " ", "'" };
+            if (line.EndsWith("?"))
+                return true;
+            foreach (string s in star)
+            {
+                //For case :what's / who's
+                if (line.StartsWith(s + token[1], true, new CultureInfo("en-US"))) 
+                    return true;
+                foreach (string v in verb)
+                {
+                    //v 開頭
+                    if (line.StartsWith(v, true, new CultureInfo("en-US"))) 
+                        return true;
+                    //疑問詞+動詞
+                    if (line.StartsWith(s + token[0] + v, true, new CultureInfo("en-US"))) 
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }

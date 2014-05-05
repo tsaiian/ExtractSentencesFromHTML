@@ -164,17 +164,20 @@ namespace HTMLtoContent
                         Regex whiteRegex = new Regex("[ \t]+");
                         afterProcess = whiteRegex.Replace(afterProcess, " ");
 
-                        string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterProcess)));
-
-                        int tf = 0;
-                        foreach (string token in tokens)
-                            if (query.Contains(token))
-                                tf++;
-                        
-
-                        if (tokens.Length >= 3 && tf >= 1)
+                        if (!NLPmethods.isQuestion(afterProcess))
                         {
-                            sw.WriteLine(tf + "\t" + block.second + "\t" + afterProcess);
+                            string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterProcess)));
+
+                            int tf = 0;
+                            foreach (string token in tokens)
+                                if (query.Contains(token))
+                                    tf++;
+
+
+                            if (tokens.Length >= 3 && tf >= 1)
+                            {
+                                sw.WriteLine(tf + "\t" + block.second + "\t" + afterProcess);
+                            }
                         }
                     }
                 }
