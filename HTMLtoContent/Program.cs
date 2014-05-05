@@ -100,7 +100,7 @@ namespace HTMLtoContent
             else
             {
                 Regex HeadRegex = new Regex("h[1-6]");
-                if (HeadRegex.IsMatch(node.Name))
+                if (HeadRegex.IsMatch(node.Name) && node.Name.Length == 2)
                 {
                     //save
                     tbs.SaveBlock();
