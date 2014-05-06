@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LexRank.cs" />
     <Compile Include="MainBodyDetector.cs" />
     <Compile Include="NLP.cs" />
     <Compile Include="Pair.cs" />
