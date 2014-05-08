@@ -14,9 +14,9 @@ namespace HTMLtoContent
         private const double convergenceThreshold = 0.0000000001;
 
         static private NLP _NLP = Program.NLPmethods;
-        static double[] getScore(List<string[]> sentences)
+        static public void getScore(Sentence[] sentences)
         {
-            int N = sentences.Count;
+            int N = sentences.Length;
             Console.WriteLine(N);
 
             List<int> link = new List<int>();
@@ -30,7 +30,7 @@ namespace HTMLtoContent
                 for (int j = 0; j < N; j++)
                 {
                     
-                    double simTemp = cosineSimilarity(sentences[i], sentences[j]);
+                    double simTemp = cosineSimilarity(sentences[i].tokens, sentences[j].tokens);
                     bMatrix[i, j] = simTemp;
                     if (simTemp >= linkThreshold)
                         a += 1;
@@ -71,10 +71,12 @@ namespace HTMLtoContent
                     Console.Write(tmpRank[k] + "\t");
                 Console.WriteLine();
             }
-            
+
+
+
             List<double> result = new List<double>();
             for (int i = 0; i < N; i++)
-                result.Add(lexRank[i]);
+                sentences[i].lexRank = lexRank[i] * N;
 
             //StreamWriter sw = new StreamWriter("out.txt");
             //for (int i = 0; i < N; i++)
@@ -84,7 +86,7 @@ namespace HTMLtoContent
             //sw.Close();
 
             Console.WriteLine("end!!");
-            return result.ToArray();
+            //return result.ToArray();
         }
         static private bool isConvergence(double[] p1, double[] p2)
         {
