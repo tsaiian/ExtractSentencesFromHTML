@@ -9,7 +9,12 @@ namespace HTMLtoContent
     {
         public const int numOfSentencesEachQ = 1500;
 
-        //algorithm related
+        //lexRank related
+        public const double d = 0.85;
+        public const double linkThreshold = 0.2;
+        public const double convergenceThreshold = 0.0000000001;
+
+        //main body detector related
         public const double thresholdT = 0.8;
 
         //tag related

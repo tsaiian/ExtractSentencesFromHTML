@@ -9,10 +9,6 @@ namespace HTMLtoContent
 {
     class LexRank
     {
-        private const double d = 0.85;
-        private const double linkThreshold = 0.2;
-        private const double convergenceThreshold = 0.0000000001;
-
         static private NLP _NLP = Program.NLPmethods;
         static public void getScore(Sentence[] sentences)
         {
@@ -32,7 +28,7 @@ namespace HTMLtoContent
                     
                     double simTemp = cosineSimilarity(sentences[i].tokens, sentences[j].tokens);
                     bMatrix[i, j] = simTemp;
-                    if (simTemp >= linkThreshold)
+                    if (simTemp >= Setting.linkThreshold)
                         a += 1;
                 }
                 link.Add(a);
@@ -58,13 +54,13 @@ namespace HTMLtoContent
                     tmpRank[i] = 0;
                     for (int j = 0; j < N; j++)
                     {
-                        if (bMatrix[i, j] >= linkThreshold && i != j)
+                        if (bMatrix[i, j] >= Setting.linkThreshold && i != j)
                         {
                             if (link[j] != 0)
                                 tmpRank[i] += ((double)lexRank[j] / (double)link[j]);
                         }
                     }
-                    tmpRank[i] = tmpRank[i] * (1 - d) + d / N;
+                    tmpRank[i] = tmpRank[i] * (1 - Setting.d) + Setting.d / N;
                 }
 
                 for (int k = 0; k < N; k++)
@@ -72,26 +68,16 @@ namespace HTMLtoContent
                 Console.WriteLine();
             }
 
-
-
             List<double> result = new List<double>();
             for (int i = 0; i < N; i++)
                 sentences[i].lexRank = lexRank[i] * N;
 
-            //StreamWriter sw = new StreamWriter("out.txt");
-            //for (int i = 0; i < N; i++)
-            //{
-            //    sw.WriteLine(lexRank[i] * N + "\t" + oriSsentences[i]);
-            //}
-            //sw.Close();
-
             Console.WriteLine("end!!");
-            //return result.ToArray();
         }
         static private bool isConvergence(double[] p1, double[] p2)
         {
             for(int i= 0 ; i < p1.Length ; i++)
-                if (Math.Abs(p1[i] - p2[i]) > convergenceThreshold)
+                if (Math.Abs(p1[i] - p2[i]) > Setting.convergenceThreshold)
                     return false;
 
             return true;
@@ -138,10 +124,6 @@ namespace HTMLtoContent
                 denominatorB += kvp.Value * kvp.Value;
 
             double similarity = numerator / Math.Sqrt(denominatorA) / Math.Sqrt(denominatorB);
-
-            //Console.WriteLine("!!" + numerator + " " + Math.Sqrt(denominatorA) + " " + Math.Sqrt(denominatorB) );
-            //Console.WriteLine("!!" + similarity );
-
             return similarity;
         }
     }

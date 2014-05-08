@@ -70,28 +70,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LexRank.cs" />
-    <Compile Include="MainBodyDetector.cs" />
-    <Compile Include="NLP.cs" />
-    <Compile Include="Pair.cs" />
+    <Compile Include="Weighting\LexRank.cs" />
+    <Compile Include="Other\MainBodyDetector.cs" />
+    <Compile Include="Other\NLP.cs" />
+    <Compile Include="Data structure\Pair.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QA.cs" />
-    <Compile Include="Sentence.cs" />
+    <Compile Include="Weighting\QA.cs" />
+    <Compile Include="Data structure\Sentence.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Stemming.cs" />
-    <Compile Include="TopicBlocks.cs" />
+    <Compile Include="Other\Stemming.cs" />
+    <Compile Include="Data structure\TopicBlocks.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="model\en-sent.bin">
+    <None Include="Resources\en-sent.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="model\en-token.bin">
+    <None Include="Resources\en-token.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="english.stop.txt">
+    <Content Include="Resources\english.stop.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

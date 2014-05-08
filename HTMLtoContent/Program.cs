@@ -74,13 +74,13 @@ namespace HTMLtoContent
                             parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[qId - 1].ToArray()));
                         }
 
-                        Sentence[] sentences = SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[qId - 1].ToArray(), i);
+                        Sentence[] sentences = SplitToSentences(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[qId - 1].ToArray(), i);
                         foreach(Sentence s in sentences)
                             Q_Sens.Add(s);
                         alreadyGetSentencesFromQid += sentences.Length;
                     }
 
-                    //LexRank here
+                    //LexRank
                     LexRank.getScore(Q_Sens.ToArray());
 
                     Q_Sens.Sort(delegate(Sentence x, Sentence y)
@@ -89,6 +89,10 @@ namespace HTMLtoContent
                         double b = y.lexRank * y.logRank * y.tf * y.topicWeight;
                         return a.CompareTo(b) * (-1);
                     });
+
+                    //output
+                    if (!Directory.Exists(Setting.outputDirectoryPath))
+                        Directory.CreateDirectory(Setting.outputDirectoryPath);
 
                     StreamWriter sw = new StreamWriter(Setting.outputDirectoryPath + @"\" + qId + ".txt");
                     foreach (Sentence s in Q_Sens)
@@ -170,22 +174,12 @@ namespace HTMLtoContent
 
             return tbs;
         }
-        static private Sentence[] SplitSentencesAndWriteFile(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query, int rank)
+        static private Sentence[] SplitToSentences(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query, int rank)
         {
-            //等等藥用
-            //if (!Directory.Exists(Setting.outputDirectoryPath))
-            //    Directory.CreateDirectory(Setting.outputDirectoryPath);
-            
-            //StreamWriter sw = new StreamWriter(outputFileName);
-
             List<Sentence> result = new List<Sentence>();
             if (blocksAndWeight == null)
-            {
-                //sw.Close();
                 return result.ToArray();
-            }
 
-            
             foreach (Pair<string, double> block in blocksAndWeight)
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
@@ -212,14 +206,11 @@ namespace HTMLtoContent
                             {
                                 Sentence sen = new Sentence(afterProcess, tokens, tf, block.second, rank);
                                 result.Add(sen);
-
-                                //sw.WriteLine(tf + "\t" + block.second + "\t" + afterProcess);
                             }
                         }
                     }
                 }
             }
-            //sw.Close();
             return result.ToArray();
         }
     }

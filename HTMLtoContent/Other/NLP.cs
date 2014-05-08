@@ -19,17 +19,17 @@ namespace HTMLtoContent
         public NLP()
         {
             //loading sentence detector model
-            java.io.FileInputStream modelInpStream = new java.io.FileInputStream("model\\en-sent.bin");
+            java.io.FileInputStream modelInpStream = new java.io.FileInputStream("Resources\\en-sent.bin");
             SentenceModel sentenceModel = new SentenceModel(modelInpStream);
             sentenceDetector = new SentenceDetectorME(sentenceModel);
 
             //loading tokenizer model
-            modelInpStream = new java.io.FileInputStream("model\\en-token.bin");
+            modelInpStream = new java.io.FileInputStream("Resources\\en-token.bin");
             TokenizerModel tokenizerModel = new TokenizerModel(modelInpStream);
             tokenizer = new TokenizerME(tokenizerModel);
 
             //loading stop words list
-            StreamReader sr = new StreamReader("english.stop.txt");
+            StreamReader sr = new StreamReader("Resources\\english.stop.txt");
             string line;
             while ((line = sr.ReadLine()) != null)
             {
