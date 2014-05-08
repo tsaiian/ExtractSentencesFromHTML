@@ -5,8 +5,10 @@ using System.Text;
 using opennlp.tools.tokenize;
 using opennlp.tools.sentdetect;
 using opennlp.tools.util;
-using System.IO;
 using System.Globalization;
+using opennlp.tools.postag;
+using opennlp.tools.chunker;
+using System.IO;
 
 namespace HTMLtoContent
 {
@@ -14,7 +16,10 @@ namespace HTMLtoContent
     {
         private SentenceDetectorME sentenceDetector;
         private TokenizerME tokenizer;
+        private POSTaggerME tagger;
+        private ChunkerME chunker;
         private HashSet<string> stopwords = new HashSet<string>();
+
 
         public NLP()
         {
@@ -27,6 +32,14 @@ namespace HTMLtoContent
             modelInpStream = new java.io.FileInputStream("Resources\\en-token.bin");
             TokenizerModel tokenizerModel = new TokenizerModel(modelInpStream);
             tokenizer = new TokenizerME(tokenizerModel);
+
+            modelInpStream = new java.io.FileInputStream("Resources\\en-pos-maxent.bin");
+            POSModel posModel = new POSModel(modelInpStream);
+            tagger = new POSTaggerME(posModel);
+
+            modelInpStream = new java.io.FileInputStream("Resources\\en-chunker.bin");
+            ChunkerModel chunkerModel = new ChunkerModel(modelInpStream);
+            chunker = new ChunkerME(chunkerModel);
 
             //loading stop words list
             StreamReader sr = new StreamReader("Resources\\english.stop.txt");
@@ -52,6 +65,17 @@ namespace HTMLtoContent
                 list.Add(str.Substring(span.getStart(), span.getEnd() - span.getStart()));
 			
             return list.ToArray();
+        }
+
+        public string[] Chunking(string[] tokens)
+        {
+            string[] pos = tagger.tag(tokens);
+            return Chunking(tokens, pos);
+        }
+
+        public string[] Chunking(string[] tokens, string[] pos)
+        {
+            return chunker.chunk(tokens, pos);
         }
 
         public string Stemming(string str)

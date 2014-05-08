@@ -21,12 +21,12 @@ namespace HTMLtoContent
             // consine similarity
             for (int i = 0; i < N; i++)
             {
-                Console.WriteLine( i + " / " + N);
+                Console.WriteLine("[Info] LexRank "+ i + " / " + N);
                 int a = -1;
                 for (int j = 0; j < N; j++)
                 {
-                    
-                    double simTemp = cosineSimilarity(sentences[i].tokens, sentences[j].tokens);
+
+                    double simTemp = cosineSimilarity(sentences[i].stemTokens, sentences[j].stemTokens);
                     bMatrix[i, j] = simTemp;
                     if (simTemp >= Setting.linkThreshold)
                         a += 1;
@@ -62,17 +62,11 @@ namespace HTMLtoContent
                     }
                     tmpRank[i] = tmpRank[i] * (1 - Setting.d) + Setting.d / N;
                 }
-
-                for (int k = 0; k < N; k++)
-                    Console.Write(tmpRank[k] + "\t");
-                Console.WriteLine();
             }
 
             List<double> result = new List<double>();
             for (int i = 0; i < N; i++)
                 sentences[i].lexRank = lexRank[i] * N;
-
-            Console.WriteLine("end!!");
         }
         static private bool isConvergence(double[] p1, double[] p2)
         {

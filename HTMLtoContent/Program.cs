@@ -96,7 +96,16 @@ namespace HTMLtoContent
 
                     StreamWriter sw = new StreamWriter(Setting.outputDirectoryPath + @"\" + qId + ".txt");
                     foreach (Sentence s in Q_Sens)
-                        sw.WriteLine(s.tf + "\t" + s.logRank + "\t" + s.lexRank + "\t" + s.topicWeight + "\t" + s.sentnece);
+                    {
+                        sw.WriteLine("sentence:\t\t\t" + s.sentnece);
+                        sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
+                        sw.WriteLine("term freq:\t\t\t" + s.tf);
+                        sw.WriteLine("logRank:\t\t\t" + s.logRank);
+                        sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
+                        sw.WriteLine("subtopic weight:\t" + s.topicWeight);
+                        sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
+                        sw.WriteLine("----------------------------------------------------------------");
+                    }
                     sw.Close();
                     
                 }
@@ -195,16 +204,17 @@ namespace HTMLtoContent
 
                         if (!NLPmethods.isQuestion(afterProcess))
                         {
-                            string[] tokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(afterProcess)));
+                            string[] tokens = (NLPmethods.Tokenization(afterProcess));
+                            string[] stemTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(tokens));
 
                             int tf = 0;
-                            foreach (string token in tokens)
+                            foreach (string token in stemTokens)
                                 if (query.Contains(token))
                                     tf++;
 
-                            if (tokens.Length >= 3 && tf >= 1)
+                            if (stemTokens.Length >= 3 && tf >= 1)
                             {
-                                Sentence sen = new Sentence(afterProcess, tokens, tf, block.second, rank);
+                                Sentence sen = new Sentence(afterProcess, tokens, stemTokens, tf, block.second, rank);
                                 result.Add(sen);
                             }
                         }

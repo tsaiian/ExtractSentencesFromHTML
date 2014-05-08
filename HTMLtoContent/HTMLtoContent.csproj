@@ -83,6 +83,12 @@
     <Compile Include="Data structure\TopicBlocks.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\en-chunker.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\en-pos-maxent.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\en-sent.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
