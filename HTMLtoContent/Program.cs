@@ -30,39 +30,50 @@ namespace HTMLtoContent
             //foreach html
             if (Directory.Exists(Setting.HTML_DirectoryPath))
             {
-                string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "*.html");
-                foreach (string file in files)
+                for (int qId = 1; qId <= 50; qId++)
                 {
-                    DirectoryInfo di = new DirectoryInfo(file);
-                    Console.WriteLine(di.Name);
+                    string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "MC-E-" + String.Format("{0:D4}", qId) + "-*.html");
+                    int HTMLcountInThisQuestion = files.Length;
 
-                    int questionId = Convert.ToInt16(di.Name.Substring(5, 4));
-
-                    sr = new StreamReader(file);
-                    string html = sr.ReadToEnd();
-                    sr.Close();
-
-                    HtmlDocument doc = new HtmlDocument();
-                    HtmlNode.ElementsFlags.Remove("form");
-                    doc.LoadHtml(html);
-
-                    HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
-                    HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
-
-                    string[] titleTokens = null;
-                    if (titleNode != null)
-                        titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
-
-                    Pair<string, double>[] parseResult = null;
-                    parseResult = QA.ExtractBlocks(doc);
-                    if (parseResult == null)
+                    int alreadyGetSentencesFromQid = 0, fileCount = 0;
+                    for (int i = 1; alreadyGetSentencesFromQid < Setting.numOfSentencesEachQ && fileCount < HTMLcountInThisQuestion; i++)
                     {
-                        MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
-                        TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
-                        parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[questionId - 1].ToArray()));
-                    }
+                        string file = Setting.HTML_DirectoryPath + "\\MC-E-" + String.Format("{0:D4}", qId) + "-" + i + ".html";
+                        DirectoryInfo di = new DirectoryInfo(file);
 
-                    SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[questionId - 1].ToArray());
+                        if (!File.Exists(file))
+                            continue;
+                        else
+                            fileCount++;
+
+                        Console.WriteLine(di.Name);
+
+                        sr = new StreamReader(file);
+                        string html = sr.ReadToEnd();
+                        sr.Close();
+
+                        HtmlDocument doc = new HtmlDocument();
+                        HtmlNode.ElementsFlags.Remove("form");
+                        doc.LoadHtml(html);
+
+                        HtmlNode bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+                        HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//html//head//title");
+
+                        string[] titleTokens = null;
+                        if (titleNode != null)
+                            titleTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(WebUtility.HtmlDecode(titleNode.InnerText))));
+
+                        Pair<string, double>[] parseResult = null;
+                        parseResult = QA.ExtractBlocks(doc);
+                        if (parseResult == null)
+                        {
+                            MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
+                            TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
+                            parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[qId - 1].ToArray()));
+                        }
+
+                        alreadyGetSentencesFromQid +=SplitSentencesAndWriteFile(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[qId - 1].ToArray());
+                    }
                 }
             }
 
@@ -138,7 +149,7 @@ namespace HTMLtoContent
 
             return tbs;
         }
-        static private void SplitSentencesAndWriteFile(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query)
+        static private int SplitSentencesAndWriteFile(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query)
         {
             if (!Directory.Exists(Setting.outputDirectoryPath))
                 Directory.CreateDirectory(Setting.outputDirectoryPath);
@@ -148,9 +159,10 @@ namespace HTMLtoContent
             if (blocksAndWeight == null)
             {
                 sw.Close();
-                return;
+                return 0;
             }
 
+            int result = 0;
             foreach (Pair<string, double> block in blocksAndWeight)
             {
                 string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
@@ -176,6 +188,7 @@ namespace HTMLtoContent
 
                             if (tokens.Length >= 3 && tf >= 1)
                             {
+                                result++;
                                 sw.WriteLine(tf + "\t" + block.second + "\t" + afterProcess);
                             }
                         }
@@ -183,6 +196,7 @@ namespace HTMLtoContent
                 }
             }
             sw.Close();
+            return result;
         }
     }
 }

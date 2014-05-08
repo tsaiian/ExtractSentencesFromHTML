@@ -7,6 +7,8 @@ namespace HTMLtoContent
 {
     class Setting
     {
+        public const int numOfSentencesEachQ = 1500;
+
         //algorithm related
         public const double thresholdT = 0.8;
 
