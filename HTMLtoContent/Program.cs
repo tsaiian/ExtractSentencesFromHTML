@@ -99,12 +99,15 @@ namespace HTMLtoContent
                     {
                         sw.WriteLine("sentence:\t\t\t" + s.sentnece);
                         sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
+                        sw.WriteLine("parser:\n" + NLPmethods.Parser(s.sentnece));
                         sw.WriteLine("term freq:\t\t\t" + s.tf);
                         sw.WriteLine("logRank:\t\t\t" + s.logRank);
                         sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
                         sw.WriteLine("subtopic weight:\t" + s.topicWeight);
                         sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
                         sw.WriteLine("----------------------------------------------------------------");
+
+                        sw.Flush();
                     }
                     sw.Close();
                     

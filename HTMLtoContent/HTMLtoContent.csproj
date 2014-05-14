@@ -86,6 +86,9 @@
     <None Include="Resources\en-chunker.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\en-parser-chunking.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\en-pos-maxent.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

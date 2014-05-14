@@ -9,6 +9,8 @@ using System.Globalization;
 using opennlp.tools.postag;
 using opennlp.tools.chunker;
 using System.IO;
+using opennlp.tools.parser;
+using opennlp.tools.cmdline.parser;
 
 namespace HTMLtoContent
 {
@@ -18,6 +20,7 @@ namespace HTMLtoContent
         private TokenizerME tokenizer;
         private POSTaggerME tagger;
         private ChunkerME chunker;
+        private Parser parser;
         private HashSet<string> stopwords = new HashSet<string>();
 
 
@@ -40,6 +43,10 @@ namespace HTMLtoContent
             modelInpStream = new java.io.FileInputStream("Resources\\en-chunker.bin");
             ChunkerModel chunkerModel = new ChunkerModel(modelInpStream);
             chunker = new ChunkerME(chunkerModel);
+
+            modelInpStream = new java.io.FileInputStream("Resources\\en-parser-chunking.bin");
+            ParserModel parserModel = new ParserModel(modelInpStream);
+            parser = ParserFactory.create(parserModel);
 
             //loading stop words list
             StreamReader sr = new StreamReader("Resources\\english.stop.txt");
@@ -107,6 +114,44 @@ namespace HTMLtoContent
                     result.Add(word);
 
             return result.ToArray();
+        }
+
+        public string Parser(string sentence)
+        {
+            if (sentence.Length <= 0)
+                return "";
+
+            string result = String.Empty;
+            Parse[] topParses = ParserTool.parseLine(sentence, parser, 1);
+            foreach (Parse p in topParses)
+                result += getPhrase(p);
+
+            return result;
+        }
+
+        private string getPhrase(Parse p, int deep = 0)
+        {
+            string result = String.Empty;
+            for (int i = 0; i < deep; i++)
+                result += "  ";
+
+            if (p.getChildCount() == 0)
+            {
+                string spanContent = p.getText().Substring(p.getSpan().getStart(), p.getSpan().getEnd() - p.getSpan().getStart());
+                result += "(" + p.getType() + " " + spanContent + ")\n";
+            }
+            else
+            {
+                result += "(" + p.getType() + "\n";
+                foreach (Parse l in p.getChildren())
+                    result += getPhrase(l, deep + 1);
+
+                for (int i = 0; i < deep; i++)
+                    result += "  ";
+
+                result += ")\n";
+            }
+            return result;
         }
 
         public bool isQuestion(string line)
