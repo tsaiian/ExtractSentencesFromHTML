@@ -145,6 +145,38 @@ namespace HTMLtoContent
             return result;
         }
 
+        public string[] getS(string sentence)
+        {
+            if (sentence.Length <= 0)
+                return null;
+
+            temp = new List<string>();
+            Parse[] topParses = ParserTool.parseLine(sentence, parser, 1);
+            foreach (Parse p in topParses)
+                recursiveTraversalTree(p);
+
+            return temp.ToArray();
+        }
+
+        private List<string> temp;
+        private void recursiveTraversalTree(Parse p)
+        {
+            if (p.getChildCount() != 0)
+            {
+                if (p.getType() == "S")
+                {
+                    string spanContent = p.getText().Substring(p.getSpan().getStart(), p.getSpan().getEnd() - p.getSpan().getStart());
+                    string[] dividedByComma = spanContent.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach(string t in dividedByComma)
+                        temp.Add(t);
+                }
+
+                foreach (Parse l in p.getChildren())
+                    recursiveTraversalTree(l);
+            }
+        }
+
         private string getPhrase(Parse p, int deep = 0)
         {
             string result = String.Empty;
