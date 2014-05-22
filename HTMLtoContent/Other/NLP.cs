@@ -102,7 +102,23 @@ namespace HTMLtoContent
 
         public bool IsStopWord(string word)
         {
-            return stopwords.Contains(word);
+            string lowerCase = word.ToLower();
+
+            //過濾掉完全沒有包含英文的token
+            bool ok = false;
+            foreach (char c in lowerCase)
+            {
+                if (c >= 'a' && c <= 'z')
+                {
+                    ok = true;
+                    break;
+                }
+            }
+
+            if (ok)
+                return stopwords.Contains(lowerCase);
+            else
+                return true;
         }
 
         public string[] FilterOutStopWords(string[] words)

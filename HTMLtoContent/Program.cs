@@ -35,7 +35,8 @@ namespace HTMLtoContent
                     string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "MC-E-" + String.Format("{0:D4}", qId) + "-*.html");
                     int HTMLcountInThisQuestion = files.Length;
 
-                    List<Sentence> Q_Sens = new List<Sentence>(); 
+                    List<Sentence> Q_Sens = new List<Sentence>();
+                    List<string[]> All_Sens = new List<string[]>(); 
 
                     int alreadyGetSentencesFromQid = 0, fileCount = 0;
                     for (int i = 1; alreadyGetSentencesFromQid < Setting.numOfSentencesEachQ && fileCount < HTMLcountInThisQuestion; i++)
@@ -74,19 +75,36 @@ namespace HTMLtoContent
                             parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[qId - 1].ToArray()));
                         }
 
-                        Sentence[] sentences = SplitToSentences(Setting.outputDirectoryPath + @"\" + di.Name + ".txt", parseResult, queryList[qId - 1].ToArray(), i);
-                        foreach(Sentence s in sentences)
+                        Sentence[] sentences = SplitToSentences(parseResult, queryList[qId - 1].ToArray(), i);
+                        string[] AllSentences = GetAllSentences(parseResult, queryList[qId - 1].ToArray(), i);
+
+                        foreach (Sentence s in sentences)
                             Q_Sens.Add(s);
+
+                        All_Sens.Add(AllSentences);
+
                         alreadyGetSentencesFromQid += sentences.Length;
                     }
+
+                    //LDA training
+                    LDA lda= new LDA();
+                    lda.training(All_Sens);
+
+                    //LDA testing
+                    lda.testing(queryList[qId - 1].ToArray(), Q_Sens.ToArray());
+
 
                     //LexRank
                     LexRank.getScore(Q_Sens.ToArray());
 
                     Q_Sens.Sort(delegate(Sentence x, Sentence y)
                     {
-                        double a = x.lexRank * x.logRank * x.tf * x.topicWeight;
-                        double b = y.lexRank * y.logRank * y.tf * y.topicWeight;
+                        //double a = x.lexRank * x.logRank * x.tf * x.topicWeight;
+                        //double b = y.lexRank * y.logRank * y.tf * y.topicWeight;
+
+                        double a = x.lda;
+                        double b = y.lda;
+
                         return a.CompareTo(b) * (-1);
                     });
 
@@ -95,19 +113,26 @@ namespace HTMLtoContent
                         Directory.CreateDirectory(Setting.outputDirectoryPath);
 
                     StreamWriter sw = new StreamWriter(Setting.outputDirectoryPath + @"\" + qId + ".txt");
+                    HashSet<string> alreadyOutput = new HashSet<string>();
                     foreach (Sentence s in Q_Sens)
                     {
-                        sw.WriteLine("sentence:\t\t\t" + s.sentnece);
-                        sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
-                        sw.WriteLine("parser:\n" + NLPmethods.Parser(s.sentnece));
-                        sw.WriteLine("term freq:\t\t\t" + s.tf);
-                        sw.WriteLine("logRank:\t\t\t" + s.logRank);
-                        sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
-                        sw.WriteLine("subtopic weight:\t" + s.topicWeight);
-                        sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
-                        sw.WriteLine("----------------------------------------------------------------");
+                        if (!alreadyOutput.Contains(s.sentnece))
+                        {
+                            sw.WriteLine("sentence:\t\t\t" + s.sentnece);
+                            //sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
+                            //sw.WriteLine("parser:\n" + NLPmethods.Parser(s.sentnece));
+                            sw.WriteLine("term freq:\t\t\t" + s.tf);
+                            sw.WriteLine("search rank:\t\t\t" + s.searchRank);
+                            sw.WriteLine("logRank:\t\t\t" + s.logRank);
+                            sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
+                            sw.WriteLine("subtopic weight:\t" + s.topicWeight);
+                            sw.WriteLine("lda:\t\t\t\t" + s.lda);
+                            sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
+                            sw.WriteLine("----------------------------------------------------------------");
+                            sw.Flush();
 
-                        sw.Flush();
+                            alreadyOutput.Add(s.sentnece);
+                        }
                     }
                     sw.Close();
                     
@@ -186,7 +211,7 @@ namespace HTMLtoContent
 
             return tbs;
         }
-        static private Sentence[] SplitToSentences(string outputFileName, Pair<string, double>[] blocksAndWeight, string[] query, int rank)
+        static private Sentence[] SplitToSentences(Pair<string, double>[] blocksAndWeight, string[] query, int rank)
         {
             List<Sentence> result = new List<Sentence>();
             if (blocksAndWeight == null)
@@ -220,6 +245,39 @@ namespace HTMLtoContent
                                 Sentence sen = new Sentence(afterProcess, tokens, stemTokens, tf, block.second, rank);
                                 result.Add(sen);
                             }
+                        }
+                    }
+                }
+            }
+            return result.ToArray();
+        }
+
+        static private string[] GetAllSentences(Pair<string, double>[] blocksAndWeight, string[] query, int rank)
+        {
+            List<string> result = new List<string>();
+            if (blocksAndWeight == null)
+                return result.ToArray();
+
+            foreach (Pair<string, double> block in blocksAndWeight)
+            {
+                string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string line in lines)
+                {
+                    string[] sentences = NLPmethods.SentDetect(line);
+                    foreach (string s in sentences)
+                    {
+                        string afterProcess = s.Trim(new char[] { '\t', ' ', '-', '*' });
+
+                        Regex whiteRegex = new Regex("[ \t]+");
+                        afterProcess = whiteRegex.Replace(afterProcess, " ");
+
+                        if (!NLPmethods.isQuestion(afterProcess))
+                        {
+                            string[] tokens = (NLPmethods.Tokenization(afterProcess));
+                            string[] stemTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(tokens));
+
+                            foreach (string t in stemTokens)
+                                result.Add(t);
                         }
                     }
                 }

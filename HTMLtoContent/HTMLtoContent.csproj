@@ -58,6 +58,10 @@
     <Reference Include="IKVM.Runtime">
       <HintPath>lib\IKVM.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="lda, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\lda.dll</HintPath>
+    </Reference>
     <Reference Include="opennlp">
       <HintPath>lib\opennlp.dll</HintPath>
     </Reference>
@@ -70,6 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Weighting\LDA.cs" />
     <Compile Include="Weighting\LexRank.cs" />
     <Compile Include="Other\MainBodyDetector.cs" />
     <Compile Include="Other\NLP.cs" />

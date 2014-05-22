@@ -16,6 +16,8 @@ namespace HTMLtoContent
         public double topicWeight;
         public double logRank;
         public double lexRank;
+        public double lda;
+        public int searchRank;
 
         public Sentence(string sen, string[] split, string[] stemSplit, int f, double tw, int rank)
         {
@@ -24,6 +26,7 @@ namespace HTMLtoContent
             stemTokens = stemSplit;
             tf = f;
             topicWeight = tw;
+            searchRank = rank;
             logRank = (double)1 / Math.Log(rank + 1, 2);
 
             string[] chunkerTokens = Program.NLPmethods.Chunking(tokens);

@@ -7,7 +7,7 @@ namespace HTMLtoContent
 {
     class Setting
     {
-        public const int numOfSentencesEachQ = 2000;
+        public const int numOfSentencesEachQ = 500;
 
         //lexRank related
         public const double d = 0.85;
