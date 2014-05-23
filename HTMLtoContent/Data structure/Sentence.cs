@@ -18,6 +18,9 @@ namespace HTMLtoContent
         public double lexRank;
         public double lda;
         public int searchRank;
+        public double lucene = 0;
+
+        public bool isTop100;
 
         public Sentence(string sen, string[] split, string[] stemSplit, int f, double tw, int rank)
         {

@@ -16,14 +16,16 @@ namespace HTMLtoContent
         static void Main(string[] args)
         {
             //read query list file
-            List<string[]> queryList = new List<string[]>();
+            List<string[]> queryTokenList = new List<string[]>();
+            List<string> queryList = new List<string>();
             StreamReader sr = new StreamReader(Setting.queryListFile);
             while (!sr.EndOfStream)
             {
                 string query = sr.ReadLine().Substring(10);
                 string[] queryTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(NLPmethods.Tokenization(query)));
 
-                queryList.Add(queryTokens);
+                queryTokenList.Add(queryTokens);
+                queryList.Add(query);
             }
             sr.Close();
 
@@ -72,38 +74,45 @@ namespace HTMLtoContent
                         {
                             MainBodyDetector mbd = new MainBodyDetector(bodyNode, Setting.thresholdT);
                             TopicBlocks tbs = ExtractBlocks(bodyNode, mbd, titleTokens);
-                            parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryList[qId - 1].ToArray()));
+                            parseResult = (tbs == null ? null : tbs.getBlocksWithWeight(queryTokenList[qId - 1].ToArray()));
                         }
 
-                        Sentence[] sentences = SplitToSentences(parseResult, queryList[qId - 1].ToArray(), i);
-                        string[] AllSentences = GetAllSentences(parseResult, queryList[qId - 1].ToArray(), i);
+                        Sentence[] sentences = SplitToSentences(parseResult, queryTokenList[qId - 1].ToArray(), i);
+                        string[] AllSentences = GetAllSentences(parseResult, queryTokenList[qId - 1].ToArray(), i);
 
                         foreach (Sentence s in sentences)
+                        {
+                            if (alreadyGetSentencesFromQid < 100)
+                                s.isTop100 = true;
+                            else
+                                s.isTop100 = false;
+
                             Q_Sens.Add(s);
+                            alreadyGetSentencesFromQid++;
+                        }
 
                         All_Sens.Add(AllSentences);
-
-                        alreadyGetSentencesFromQid += sentences.Length;
                     }
 
-                    //LDA training
+                    //LDA
                     LDA lda= new LDA();
                     lda.training(All_Sens);
-
-                    //LDA testing
-                    lda.testing(queryList[qId - 1].ToArray(), Q_Sens.ToArray());
-
+                    lda.testing(queryTokenList[qId - 1].ToArray(), Q_Sens.ToArray());
 
                     //LexRank
                     LexRank.getScore(Q_Sens.ToArray());
+
+                    //Lucene
+                    Lucene.indexing(Q_Sens.ToArray());
+                    Lucene.query(Q_Sens.ToArray(), queryList[qId - 1]);
 
                     Q_Sens.Sort(delegate(Sentence x, Sentence y)
                     {
                         //double a = x.lexRank * x.logRank * x.tf * x.topicWeight;
                         //double b = y.lexRank * y.logRank * y.tf * y.topicWeight;
 
-                        double a = x.lda;
-                        double b = y.lda;
+                        double a = x.lucene;
+                        double b = y.lucene;
 
                         return a.CompareTo(b) * (-1);
                     });
@@ -116,18 +125,21 @@ namespace HTMLtoContent
                     HashSet<string> alreadyOutput = new HashSet<string>();
                     foreach (Sentence s in Q_Sens)
                     {
-                        if (!alreadyOutput.Contains(s.sentnece))
+                        if (!alreadyOutput.Contains(s.sentnece) && s.isTop100)
                         {
                             sw.WriteLine("sentence:\t\t\t" + s.sentnece);
                             //sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
                             //sw.WriteLine("parser:\n" + NLPmethods.Parser(s.sentnece));
                             sw.WriteLine("term freq:\t\t\t" + s.tf);
-                            sw.WriteLine("search rank:\t\t\t" + s.searchRank);
+                            sw.WriteLine("search rank:\t\t" + s.searchRank);
                             sw.WriteLine("logRank:\t\t\t" + s.logRank);
                             sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
                             sw.WriteLine("subtopic weight:\t" + s.topicWeight);
                             sw.WriteLine("lda:\t\t\t\t" + s.lda);
-                            sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
+                            sw.WriteLine("lucene:\t\t\t\t" + s.lucene);
+                            sw.WriteLine("not stopword count:\t" + s.stemTokens.Length);
+                            sw.WriteLine("total token count:\t" + s.tokens.Length);
+                            //sw.WriteLine("total:\t\t\t\t" + (s.lexRank * s.logRank * s.tf * s.topicWeight));
                             sw.WriteLine("----------------------------------------------------------------");
                             sw.Flush();
 
