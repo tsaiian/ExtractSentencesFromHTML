@@ -7,7 +7,11 @@ namespace HTMLtoContent
 {
     class Setting
     {
-        public const int numOfSentencesEachQ = 500;
+        public const int numOfSentencesEachQ = 1000;
+        public const int OutputSentencesEachQ = 100;
+
+        //LDA related
+        public const int topicCount = 5;
 
         //lexRank related
         public const double d = 0.85;
@@ -15,7 +19,7 @@ namespace HTMLtoContent
         public const double convergenceThreshold = 0.0000000001;
 
         //main body detector related
-        public const double thresholdT = 0.8;
+        public const double thresholdT = 0.4;
 
         //tag related
         static public readonly string[] changeLineTags = { "p", "div", "marquee", "hr", "br", "img", "table", "frameset", "address", "body", "code", "ol", "option", "pre", "span", "ul" };

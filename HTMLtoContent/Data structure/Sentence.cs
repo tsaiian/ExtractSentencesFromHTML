@@ -20,7 +20,7 @@ namespace HTMLtoContent
         public int searchRank;
         public double lucene = 0;
 
-        public bool isTop100;
+        public bool isTop;
 
         public Sentence(string sen, string[] split, string[] stemSplit, int f, double tw, int rank)
         {

@@ -82,10 +82,10 @@ namespace HTMLtoContent
 
                         foreach (Sentence s in sentences)
                         {
-                            if (alreadyGetSentencesFromQid < 100)
-                                s.isTop100 = true;
+                            if (alreadyGetSentencesFromQid < Setting.OutputSentencesEachQ)
+                                s.isTop = true;
                             else
-                                s.isTop100 = false;
+                                s.isTop = false;
 
                             Q_Sens.Add(s);
                             alreadyGetSentencesFromQid++;
@@ -95,7 +95,7 @@ namespace HTMLtoContent
                     }
 
                     //LDA
-                    LDA lda= new LDA();
+                    LDA lda = new LDA(Setting.topicCount);
                     lda.training(All_Sens);
                     lda.testing(queryTokenList[qId - 1].ToArray(), Q_Sens.ToArray());
 
@@ -125,7 +125,7 @@ namespace HTMLtoContent
                     HashSet<string> alreadyOutput = new HashSet<string>();
                     foreach (Sentence s in Q_Sens)
                     {
-                        if (!alreadyOutput.Contains(s.sentnece) && s.isTop100)
+                        if (!alreadyOutput.Contains(s.sentnece) && s.isTop)
                         {
                             sw.WriteLine("sentence:\t\t\t" + s.sentnece);
                             //sw.WriteLine("with chunker:\t\t" + s.senWithChunk);
