@@ -35,6 +35,7 @@ namespace HTMLtoContent
                 for (int qId = 1; qId <= 50; qId++)
                 {
                     string[] files = Directory.GetFiles(Setting.HTML_DirectoryPath, "MC-E-" + String.Format("{0:D4}", qId) + "-*.html");
+
                     int HTMLcountInThisQuestion = files.Length;
 
                     List<Sentence> Q_Sens = new List<Sentence>();
@@ -44,6 +45,7 @@ namespace HTMLtoContent
                     for (int i = 1; alreadyGetSentencesFromQid < Setting.numOfSentencesEachQ && fileCount < HTMLcountInThisQuestion; i++)
                     {
                         string file = Setting.HTML_DirectoryPath + "\\MC-E-" + String.Format("{0:D4}", qId) + "-" + i + ".html";
+
                         DirectoryInfo di = new DirectoryInfo(file);
 
                         if (!File.Exists(file))
@@ -158,14 +160,13 @@ namespace HTMLtoContent
         static private string ExtractText(HtmlNode node)
         {
             string result = "";
-            if (node.Name.Equals("script") || node.Name.Equals("noscript") || node.Name.Equals("style") || node.Name.Equals("#comment"))
+            if (Setting.ignoreTags.Contains(node.Name))
                 return " ";
             else if (node.ChildNodes.Count == 0)
                 return WebUtility.HtmlDecode(node.InnerText.Replace("\n", " ").Replace("\r", " "))  + " ";
             else if (node.ChildNodes.Count > 0)
             {
-                HtmlNodeCollection hnc = node.ChildNodes;
-                foreach (HtmlNode n in hnc)
+                foreach (HtmlNode n in node.ChildNodes)
                     result += ExtractText(n);
             }
 
@@ -180,7 +181,7 @@ namespace HTMLtoContent
             if(tbs == null)
                 tbs = new TopicBlocks(titleTokens);
 
-            if (node.Name.Equals("script") || node.Name.Equals("noscript") || node.Name.Equals("style") || node.Name.Equals("#comment") || !mbd.isMainBody(node))
+            if (Setting.ignoreTags.Contains(node.Name) || !mbd.isMainBody(node))
                 tbs.addExtractedText("\n");
             else
             {
@@ -204,9 +205,11 @@ namespace HTMLtoContent
                 }
                 else
                 {
-                    HtmlNodeCollection hnc = node.ChildNodes;
-                    foreach (HtmlNode n in hnc)
+                    foreach (HtmlNode n in node.ChildNodes)
                     {
+                        if (n.Name.Equals("a"))
+                            tbs.addExtractedText("\n");
+
                         if (Setting.changeLineTags.Contains(n.Name))
                             tbs.addExtractedText("\n");
 

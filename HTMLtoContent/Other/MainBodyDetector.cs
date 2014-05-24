@@ -24,8 +24,10 @@ namespace HTMLtoContent
         {
             return eachNodeIsMainBody[node];
         }
+
         private Pair<int, int> DetectEachNodeIsMainBody(HtmlNode node)
         {//Pair<int, int> : <numOfAllTokens, numOfLinkedTokens>
+
             if (!Setting.ignoreTags.Contains(node.Name))
             {
                 bool isUnderLink = isUnderLinkNode(node);
@@ -50,12 +52,54 @@ namespace HTMLtoContent
                         numOfLinkedTokens += result.second;
                     }
 
-                    eachNodeIsMainBody.Add(node, IsMainBody(numOfAllTokens, numOfLinkedTokens, isUnderLink, node.Name));
+
+                    if (node.Name.Equals("a") && PrevOrNextIsChangeLineNode(node, 0) && PrevOrNextIsChangeLineNode(node, 1))
+                        eachNodeIsMainBody.Add(node, false);
+                    else
+                        eachNodeIsMainBody.Add(node, IsMainBody(numOfAllTokens, numOfLinkedTokens, isUnderLink, node.Name));
+
                     return new Pair<int, int>(numOfAllTokens, numOfLinkedTokens);
                 }
             }
             return new Pair<int, int>(0, 0);
         }
+
+        private bool PrevOrNextIsChangeLineNode(HtmlNode node, int i)
+        {//i = 0 (prev)    i = 1 (next)
+            HtmlNode temp = node;
+
+            if((temp = getPrevOrNextNode(temp, i)) == null)
+                return true;
+
+            while (true)
+            {
+                if (Setting.changeLineTags.Contains(temp.Name))
+                    return true;
+                else if (temp.Name.Equals("#text") && temp.InnerText.Replace("\r", "").Replace("\n", "").Replace("\t", "").Length == 0)
+                {
+                    if ((temp = getPrevOrNextNode(temp, i)) == null)
+                        return true;
+                }
+                else
+                    return false;
+            }
+        }
+
+        private HtmlNode getPrevOrNextNode(HtmlNode node, int i)
+        {
+            HtmlNode temp = node;
+            if (i == 0 && temp.PreviousSibling != null)
+                temp = temp.PreviousSibling;
+            else if(i == 1 && temp.NextSibling != null)
+                temp = temp.NextSibling;
+            else if (temp.ParentNode != null)
+                temp = temp.ParentNode;
+            else
+                return null;
+
+            return temp;
+        }
+
         private bool isUnderLinkNode(HtmlNode node)
         {
             HtmlNode tempNode = node;

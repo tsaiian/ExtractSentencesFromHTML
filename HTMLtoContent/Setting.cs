@@ -22,7 +22,7 @@ namespace HTMLtoContent
         public const double thresholdT = 0.4;
 
         //tag related
-        static public readonly string[] changeLineTags = { "p", "div", "marquee", "hr", "br", "img", "table", "frameset", "address", "body", "code", "ol", "option", "pre", "span", "ul" };
+        static public readonly string[] changeLineTags = { "p", "div", "marquee", "hr", "br", "img", "table", "frameset", "address", "body", "code", "ol", "option", "pre", "span", "ul", "li" };
         static public readonly string[] garnishTags = { "a", "b", "i", "u", "ins", "strike", "s", "del", "kbd", "tt", "font", "var" };
         static public readonly string[] ignoreTags = { "script", "noscript", "style", "#comment" };
 
