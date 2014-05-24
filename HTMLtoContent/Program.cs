@@ -256,7 +256,33 @@ namespace HTMLtoContent
                                 if (query.Contains(token))
                                     tf++;
 
-                            if (stemTokens.Length >= 3 && tf >= 1)
+                            string[] conjunction = {"to", "and", "in", "at", "is", "of", "for", "a", "an"};
+                            bool likeTitle = true;
+                            foreach (string t in tokens)
+                            {
+                                bool StartWithCapital = (t[0] >= 'A' && t[0] <= 'Z');
+                                bool allNotEng = true;
+                                foreach (char c in t)
+                                {
+                                    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+                                    {
+                                        allNotEng = false;
+                                        break;
+                                    }
+                                }
+
+
+                                if (!StartWithCapital && !conjunction.Contains(t) && !allNotEng)
+                                {
+                                    likeTitle = false;
+                                    break;
+                                }
+                            }
+                            if (likeTitle && tokens.Length < 5)
+                                likeTitle = false;
+
+
+                            if (stemTokens.Length >= 3 && tf >= 1 && !likeTitle)
                             {
                                 Sentence sen = new Sentence(afterProcess, tokens, stemTokens, tf, block.second, rank);
                                 result.Add(sen);
