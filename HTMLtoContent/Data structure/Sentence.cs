@@ -17,6 +17,7 @@ namespace HTMLtoContent
         public double logRank;
         public double lexRank;
         public double lda;
+        public double lda2;
         public int searchRank;
         public double lucene = 0;
 

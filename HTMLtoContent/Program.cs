@@ -138,6 +138,7 @@ namespace HTMLtoContent
                             sw.WriteLine("lexRank:\t\t\t" + s.lexRank);
                             sw.WriteLine("subtopic weight:\t" + s.topicWeight);
                             sw.WriteLine("lda:\t\t\t\t" + s.lda);
+                            sw.WriteLine("lda2:\t\t\t\t" + s.lda2);
                             sw.WriteLine("lucene:\t\t\t\t" + s.lucene);
                             sw.WriteLine("not stopword count:\t" + s.stemTokens.Length);
                             sw.WriteLine("total token count:\t" + s.tokens.Length);

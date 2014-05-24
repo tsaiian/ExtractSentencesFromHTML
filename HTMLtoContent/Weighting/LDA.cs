@@ -109,24 +109,28 @@ namespace HTMLtoContent
 
             foreach (Sentence sen in sentences)
             {
-                double score = 0;
-                int containNum = 0;
+                double score = 0, score2 = 0;
+                int containNum = 0, containNum2 = 0;
                 foreach (string t in sen.stemTokens)
                 {
                     if (wordmap.ContainsKey(t))
                     {
                         containNum++;
                         for (int i = 0; i < topicCount; i++)
-                        {
                             score += phi[i][wordmap[t]] * sim[i];
 
+                        if (!query.Contains(t))
+                        {
+                            containNum2++;
+                            for (int i = 0; i < topicCount; i++)
+                                score2 += phi[i][wordmap[t]] * sim[i];
                         }
-
                     }
-
                 }
-                score /= (double)sen.stemTokens.Length;
-                sen.lda = score;
+                sen.lda = score / (double)containNum;
+                sen.lda2 = score2 / (double)containNum2;
+
+
             }
 
             Console.WriteLine("[Info] LDA test finish");
