@@ -7,7 +7,7 @@ namespace HTMLtoContent
 {
     class Setting
     {
-        public const int numOfSentencesEachQ = 1000;
+        public const int numOfSentencesEachQ = 100;
         public const int OutputSentencesEachQ = 100;
 
         //LDA related

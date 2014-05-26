@@ -42,6 +42,10 @@ namespace HTMLtoContent
                     List<string[]> All_Sens = new List<string[]>(); 
 
                     int alreadyGetSentencesFromQid = 0, fileCount = 0;
+
+
+                    Dictionary<string, int> dict = new Dictionary<string, int>();
+                    string all = "";
                     for (int i = 1; alreadyGetSentencesFromQid < Setting.numOfSentencesEachQ && fileCount < HTMLcountInThisQuestion; i++)
                     {
                         string file = Setting.HTML_DirectoryPath + "\\MC-E-" + String.Format("{0:D4}", qId) + "-" + i + ".html";
@@ -82,6 +86,30 @@ namespace HTMLtoContent
                         Sentence[] sentences = SplitToSentences(parseResult, queryTokenList[qId - 1].ToArray(), i);
                         string[] AllSentences = GetAllSentences(parseResult, queryTokenList[qId - 1].ToArray(), i);
 
+                        string[] AllSentences2 = GetAllSentences2(parseResult, queryTokenList[qId - 1].ToArray(), i);
+                        //StreamWriter sw = new StreamWriter("NP.txt");
+                        foreach (string sen in AllSentences2)
+                        {
+                            //Console.WriteLine("sen:" + sen);
+
+                            all += sen.Trim(new char[]{',', '.'});
+                            string[] NPs = NLPmethods.getNP(sen.Trim(new char[]{',', '.'}));
+                            
+                            if (NPs != null)
+                            {
+                                foreach (string pp in NPs)
+                                {
+                                    Console.WriteLine("!!" + pp);
+                                    if (!dict.ContainsKey(pp))
+                                        dict.Add(pp, 1);
+                                    else
+                                        dict[pp]++;
+                                }
+                            }
+                        }
+
+
+
                         foreach (Sentence s in sentences)
                         {
                             if (alreadyGetSentencesFromQid < Setting.OutputSentencesEachQ)
@@ -95,6 +123,54 @@ namespace HTMLtoContent
 
                         All_Sens.Add(AllSentences);
                     }
+
+                    //Dictionary<string, int> dict2 = new Dictionary<string, int>(dict);
+                    //foreach(KeyValuePair<string, int> kvp in dict2)
+                    //{
+                    //    int res = 0;
+                    //    int k = 0;
+                    //    while(true)
+                    //    {
+                    //        if(k >= all.Length)
+                    //            break;
+                    //        int t = all.IndexOf(kvp.Key, k);
+                    //        if(t < 0)
+                    //            break;
+                    //        else
+                    //        {
+                    //            k = all.IndexOf(kvp.Key, k) + 1;
+                    //            res++;
+                    //        }
+                          
+                    //    }
+                    //    dict[kvp.Key] = res;
+
+
+                    //}
+                    
+                    List<KeyValuePair<string, int>> myList = dict.ToList();
+
+                    myList.Sort(
+                        delegate(KeyValuePair<string, int> firstPair,
+                        KeyValuePair<string, int> nextPair)
+                        {
+                            return firstPair.Value.CompareTo(nextPair.Value) * (-1);
+                        }
+                    );
+
+                    StreamWriter sw2 = new StreamWriter("shanny.txt");
+
+                    foreach (KeyValuePair<string, int> kvp in myList)
+                    {
+                        sw2.WriteLine(kvp.Key + "\t" + kvp.Value);
+                        
+                        //Console.ReadKey();
+
+                    }
+
+                    sw2.Close();
+                    
+
 
                     //LDA
                     LDA lda = new LDA(Setting.topicCount);
@@ -326,5 +402,39 @@ namespace HTMLtoContent
             }
             return result.ToArray();
         }
+
+        static private string[] GetAllSentences2(Pair<string, double>[] blocksAndWeight, string[] query, int rank)
+        {
+            List<string> result = new List<string>();
+            if (blocksAndWeight == null)
+                return result.ToArray();
+
+            foreach (Pair<string, double> block in blocksAndWeight)
+            {
+                string[] lines = block.first.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string line in lines)
+                {
+                    string[] sentences = NLPmethods.SentDetect(line);
+                    foreach (string s in sentences)
+                    {
+                        string afterProcess = s.Trim(new char[] { '\t', ' ', '-', '*' });
+
+                        Regex whiteRegex = new Regex("[ \t]+");
+                        afterProcess = whiteRegex.Replace(afterProcess, " ");
+
+                        if (!NLPmethods.isQuestion(afterProcess))
+                        {
+                            //string[] tokens = (NLPmethods.Tokenization(afterProcess));
+                            //string[] stemTokens = NLPmethods.Stemming(NLPmethods.FilterOutStopWords(tokens));
+
+                            //foreach (string t in stemTokens)
+                            result.Add(afterProcess);
+                        }
+                    }
+                }
+            }
+            return result.ToArray();
+        }
+
     }
 }
