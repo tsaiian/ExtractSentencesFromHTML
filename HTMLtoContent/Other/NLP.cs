@@ -145,20 +145,6 @@ namespace HTMLtoContent
             return result;
         }
 
-        public string[] getNP(string sentence)
-        {
-            if (sentence.Length <= 0)
-                return null;
-
-            temp = new List<string>();
-            Parse[] topParses = ParserTool.parseLine(sentence, parser, 1);
-            foreach (Parse p in topParses)
-                recursiveTraversalTree2(p);
-
-            return temp.ToArray();
-
-        }
-
         public string[] getS(string sentence)
         {
             if (sentence.Length <= 0)
@@ -188,43 +174,6 @@ namespace HTMLtoContent
 
                 foreach (Parse l in p.getChildren())
                     recursiveTraversalTree(l);
-            }
-        }
-
-        private bool containNP(Parse p)
-        {
-            if (p.getType() == "NP")
-            {
-                if (p.getChildCount() != 0)
-                {
-                    foreach (Parse o in p.getChildren())
-                        if (o.getType() != "NN" && o.getType() != "NNP")
-                            return false;
-
-                    return true;
-                }
-            }
-
-            return false;
-
-        }
-
-        private void recursiveTraversalTree2(Parse p)
-        {
-            if (p.getChildCount() != 0)
-            {
-                if (p.getType() == "NP")
-                {
-                    string spanContent = p.getText().Substring(p.getSpan().getStart(), p.getSpan().getEnd() - p.getSpan().getStart());
-
-                    if (containNP(p))
-                        temp.Add(spanContent);
-                    
-                    
-                }
-
-                foreach (Parse l in p.getChildren())
-                    recursiveTraversalTree2(l);
             }
         }
 
