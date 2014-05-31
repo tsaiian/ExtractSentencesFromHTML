@@ -263,9 +263,7 @@ namespace HTMLtoContent
             foreach (string s in star)
             {
                 //For case :what's / who's
-                if (line.StartsWith(s + "'", true, new CultureInfo("en-US")))
-                    return true;
-                else if (line.StartsWith(s + " to", true, new CultureInfo("en-US")))
+                if (line.StartsWith(s, true, new CultureInfo("en-US")))
                     return true;
                 foreach (string v in verb)
                 {
